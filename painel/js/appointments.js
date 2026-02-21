@@ -92,20 +92,36 @@ document.addEventListener("DOMContentLoaded", () => {
                 blockBtn.style.color = "#b91c1c";
 
                 blockBtn.addEventListener("click", async () => {
-                    const msg = `Bloquear cliente ${ap.customer_name || ""} (${ap.customer_phone || "-"})?`;
-                    const ok = window.confirm(msg);
-                    if (!ok) return;
-
+                    
                     const reason = window.prompt("Motivo do bloqueio:", "Bloqueado via painel");
-                    try {
-                        setStatus("Bloqueando cliente...");
-                        await window.blockCustomer(ap.customer_id, reason);
-                        setStatus("Cliente bloqueado com sucesso.", "success");
-                    } catch (err) {
-                        console.error(err);
-                        setStatus("Erro ao bloquear cliente.", "error");
-                    }
+                    if (reason === null) return; 
+
+                    
+                    showDangerConfirm(
+                        "Bloquear cliente",
+                        `Tem certeza que deseja bloquear ${ap.customer_name || ""} (${ap.customer_phone || "-"})?<br><br><strong>Motivo:</strong> ${reason}`,
+                        "Bloquear",
+                        async () => {
+                            try {
+                                setStatus("Bloqueando cliente...");
+                                await window.blockCustomer(ap.customer_id, reason);
+                                showSuccess(
+                                    "Cliente bloqueado!",
+                                    "O cliente foi bloqueado com sucesso.",
+                                    () => {
+                                        setStatus("Cliente bloqueado com sucesso.", "success");
+                                        loadAppointments();
+                                    }
+                                );
+                            } catch (err) {
+                                console.error(err);
+                                showError("Erro ao bloquear", "Não foi possível bloquear o cliente.");
+                                setStatus("Erro ao bloquear cliente.", "error");
+                            }
+                        }
+                    );
                 });
+
 
                 tdActions.appendChild(blockBtn);
             } else {

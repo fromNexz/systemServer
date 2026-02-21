@@ -18,15 +18,15 @@ window.setFlowMode = async function (mode) {
         const data = await response.json();
 
         if (data.success) {
-            console.log('✅ Modo salvo no banco:', mode);
-            alert('✅ ' + data.message + '\n\n⚠️ Reinicie o bot para aplicar as mudanças.');
+            console.log('[+] Modo salvo no banco:', mode);
+            showSuccess('Modo Alterado', data.message + '<br><br>⚠️ Reinicie o bot para aplicar as mudanças.');
             updateModeUI(mode);
         } else {
-            alert('❌ Erro: ' + data.message);
+            showError('Erro', data.message);
         }
     } catch (error) {
-        console.error('❌ Erro ao alterar modo:', error);
-        alert('❌ Erro ao alterar modo: ' + error.message);
+        console.error('[X] Erro ao alterar modo:', error);
+        showError('Erro ao Alterar Modo', error.message);
     }
 };
 
@@ -476,11 +476,15 @@ function addNewMessage() {
 
 // Excluir mensagem
 function deleteMessage(index) {
-    if (confirm("Tem certeza que deseja excluir esta mensagem?")) {
-        messages.splice(index, 1);
-        renderMessages();
-        markAsUnsaved();
-    }
+    showConfirm(
+        'Excluir Mensagem',
+        'Tem certeza que deseja excluir esta mensagem?',
+        () => {
+            messages.splice(index, 1);
+            renderMessages();
+            markAsUnsaved();
+        }
+    );
 }
 
 // Mover mensagem para cima
@@ -534,7 +538,7 @@ async function handleFileUpload(index, file) {
 
     } catch (error) {
         console.error("Erro no upload:", error);
-        alert("Erro ao fazer upload do arquivo. Tente novamente.");
+        showError('Erro no Upload', 'Não foi possível enviar o arquivo. Tente novamente.');
         uploadText.innerHTML = 'Clique ou arraste um arquivo aqui';
     }
 }
@@ -608,13 +612,13 @@ async function saveAll() {
             }
         }
 
-        alert("Mensagens salvas com sucesso!");
+        showSuccess('Salvo', 'Mensagens salvas com sucesso!');
         markAsSaved();
         await loadMessages();
 
     } catch (error) {
         console.error("Erro ao salvar:", error);
-        alert("Erro ao salvar as mensagens. Verifique o console.");
+        showError('Erro ao Salvar', 'Não foi possível salvar as mensagens. Verifique o console.');
     } finally {
         saveBtn.disabled = false;
         saveBtn.innerHTML = `

@@ -1188,8 +1188,13 @@ body {
 }
 
 @keyframes rotate-icon {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 /* Ocultar o indicador circular antigo */
@@ -1208,7 +1213,7 @@ body {
     padding: 1.5rem;
     border-radius: 8px;
     display: inline-block;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     border: 1px solid #e0e0e0;
 }
 
@@ -1232,11 +1237,14 @@ body {
 
 /* Animação de pulsação para QR pendente (opcional) */
 @keyframes pulse-qr {
-    0%, 100% { 
-        opacity: 1; 
+
+    0%,
+    100% {
+        opacity: 1;
         transform: scale(1);
     }
-    50% { 
+
+    50% {
         opacity: 0.8;
         transform: scale(0.98);
     }
@@ -1306,19 +1314,19 @@ body {
 
 /* ==================== MODAIS PERSONALIZADOS ==================== */
 
-/* Overlay do modal */
+/* Modais customizados */
 .modal-overlay-custom {
+    display: none;
     position: fixed;
     top: 0;
     left: 0;
-    right: 0;
-    bottom: 0;
+    width: 100%;
+    height: 100%;
     background: rgba(0, 0, 0, 0.6);
     backdrop-filter: blur(4px);
-    display: none;
-    justify-content: center;
+    z-index: 10000;
     align-items: center;
-    z-index: 9999;
+    justify-content: center;
     animation: fadeIn 0.2s ease;
 }
 
@@ -1326,39 +1334,25 @@ body {
     display: flex;
 }
 
-/* Container do modal */
-.modal-container-custom {
+.modal-content-custom {
     background: white;
     border-radius: 12px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-    max-width: 500px;
+    padding: 2rem;
+    max-width: 450px;
     width: 90%;
-    animation: slideDown 0.3s ease;
-    overflow: hidden;
-}
-
-/* Header do modal */
-.modal-header-custom {
-    padding: 1.5rem;
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    border-bottom: 1px solid #e0e0e0;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    animation: slideUp 0.3s ease;
+    text-align: center;
 }
 
 .modal-icon-custom {
-    width: 48px;
-    height: 48px;
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 1.5rem;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    flex-shrink: 0;
-}
-
-.modal-icon-custom svg {
-    width: 24px;
-    height: 24px;
 }
 
 .modal-icon-custom.success {
@@ -1381,64 +1375,51 @@ body {
     color: #17a2b8;
 }
 
-.modal-title-custom {
-    flex: 1;
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: #333;
-    margin: 0;
+.modal-icon-custom.question {
+    background: #e7f3ff;
+    color: #4a90e2;
 }
 
-/* Body do modal */
+.modal-title-custom {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: #2c3e50;
+}
+
 .modal-body-custom {
-    padding: 1.5rem;
-    color: #666;
+    font-size: 1rem;
+    color: #5a6c7d;
+    margin-bottom: 1.5rem;
     line-height: 1.6;
 }
 
-.modal-body-custom ul {
-    margin: 0.5rem 0;
-    padding-left: 1.5rem;
-}
-
-.modal-body-custom ul li {
-    margin: 0.25rem 0;
-}
-
-/* Footer do modal */
 .modal-footer-custom {
-    padding: 1rem 1.5rem;
-    background: #f8f9fa;
     display: flex;
     gap: 0.75rem;
-    justify-content: flex-end;
+    justify-content: center;
 }
 
 .modal-btn-custom {
     padding: 0.75rem 1.5rem;
     border: none;
     border-radius: 6px;
-    font-size: 0.95rem;
+    font-size: 1rem;
     font-weight: 500;
     cursor: pointer;
     transition: all 0.2s ease;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.modal-btn-custom:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    min-width: 100px;
 }
 
 .modal-btn-custom.primary {
-    background: #007bff;
+    background: #4a90e2;
     color: white;
 }
 
 .modal-btn-custom.primary:hover {
-    background: #0056b3;
+    background: #357abd;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(74, 144, 226, 0.3);
 }
 
 .modal-btn-custom.success {
@@ -1448,6 +1429,8 @@ body {
 
 .modal-btn-custom.success:hover {
     background: #218838;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
 }
 
 .modal-btn-custom.danger {
@@ -1457,6 +1440,17 @@ body {
 
 .modal-btn-custom.danger:hover {
     background: #c82333;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+}
+
+.modal-btn-custom.ghost {
+    background: #e9ecef;
+    color: #495057;
+}
+
+.modal-btn-custom.ghost:hover {
+    background: #dee2e6;
 }
 
 .modal-btn-custom.secondary {
@@ -1468,51 +1462,26 @@ body {
     background: #5a6268;
 }
 
-.modal-btn-custom.ghost {
-    background: transparent;
-    color: #666;
-    border: 1px solid #e0e0e0;
-}
-
-.modal-btn-custom.ghost:hover {
-    background: #f8f9fa;
-    border-color: #ccc;
-}
-
-/* Animações */
 @keyframes fadeIn {
     from {
         opacity: 0;
     }
+
     to {
         opacity: 1;
     }
 }
 
-@keyframes slideDown {
+@keyframes slideUp {
     from {
-        transform: translateY(-50px);
+        transform: translateY(20px);
         opacity: 0;
     }
+
     to {
         transform: translateY(0);
         opacity: 1;
     }
-}
-
-/* Loading spinner */
-.modal-spinner {
-    display: inline-block;
-    width: 16px;
-    height: 16px;
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    border-top-color: white;
-    border-radius: 50%;
-    animation: spin 0.6s linear infinite;
-}
-
-@keyframes spin {
-    to { transform: rotate(360deg); }
 }
 
 /* ==================== FIM MODAIS ==================== */

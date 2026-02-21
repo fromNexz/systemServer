@@ -203,34 +203,52 @@ document.getElementById("edit-form").addEventListener("submit", async (e) => {
             throw new Error("Erro ao atualizar");
         }
 
-        alert("Agendamento atualizado com sucesso!");
-        closeEditModal();
-        loadAppointments();
-        loadDashboardStats();
-
+        showSuccess(
+            "Sucesso!",
+            "Agendamento atualizado com sucesso!",
+            () => {
+                closeEditModal();
+                loadAppointments();
+                loadDashboardStats();
+            }
+        );
     } catch (err) {
         console.error("Erro:", err);
-        alert("Erro ao atualizar agendamento. Verifique o console (F12) para mais detalhes.");
+        showError(
+            "Erro ao atualizar",
+            "Não foi possível atualizar o agendamento. Verifique o console (F12) para mais detalhes."
+        );
     }
+
 });
 
-
 async function deleteAppointment(id) {
-    if (!confirm("Tem certeza que deseja excluir este agendamento?")) return;
+    showDangerConfirm(
+        "Excluir agendamento",
+        "Tem certeza que deseja excluir este agendamento? Esta ação não pode ser desfeita.",
+        "Excluir",
+        async () => {
+            try {
+                const response = await fetch(`/appointments/${id}`, {
+                    method: "DELETE"
+                });
+                if (!response.ok) throw new Error("Erro ao excluir");
 
-    try {
-        const response = await fetch(`/appointments/${id}`, {
-            method: "DELETE"
-        });
-
-        if (!response.ok) throw new Error("Erro ao excluir");
-
-        alert("Agendamento excluído com sucesso!");
-        loadAppointments();
-        loadDashboardStats();
-
-    } catch (err) {
-        console.error("Erro:", err);
-        alert("Erro ao excluir agendamento");
-    }
+                showSuccess(
+                    "Sucesso!",
+                    "Agendamento excluído com sucesso!",
+                    () => {
+                        loadAppointments();
+                        loadDashboardStats();
+                    }
+                );
+            } catch (err) {
+                console.error("Erro:", err);
+                showError(
+                    "Erro ao excluir",
+                    "Não foi possível excluir o agendamento. Tente novamente."
+                );
+            }
+        }
+    );
 }

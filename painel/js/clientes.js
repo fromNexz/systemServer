@@ -32,33 +32,50 @@ document.addEventListener("DOMContentLoaded", () => {
   confirmBtn.addEventListener("click", async () => {
     if (!currentCustomer) return;
     const reason = reasonInput.value.trim() || "Bloqueado via painel";
-
     confirmBtn.disabled = true;
+
     try {
       await window.blockCustomer(currentCustomer.id, reason);
-      await loadCustomers(); // recarrega tabela
+      closeModal();
+      showSuccess(
+        "Cliente bloqueado!",
+        `${currentCustomer.name || currentCustomer.phone} foi bloqueado com sucesso.`,
+        () => {
+          loadCustomers();
+        }
+      );
     } catch (err) {
       console.error(err);
-      alert("Erro ao bloquear cliente.");
+      showError("Erro ao bloquear", "Não foi possível bloquear o cliente.");
     } finally {
       confirmBtn.disabled = false;
-      closeModal();
     }
   });
 
   async function deleteCustomerHandler(customer) {
-    if (!confirm(`Tem certeza que deseja excluir ${customer.name || customer.phone}?\n\nEsta ação não pode ser desfeita!`)) {
-      return;
-    }
-
-    try {
-      await window.deleteCustomer(customer.id);
-      alert("Cliente excluído com sucesso!");
-      await loadCustomers();
-    } catch (err) {
-      console.error(err);
-      alert(err.message || "Erro ao excluir cliente.");
-    }
+    showDangerConfirm(
+      "Excluir cliente",
+      `Tem certeza que deseja excluir <strong>${customer.name || customer.phone}</strong>?<br><br>Esta ação não pode ser desfeita!`,
+      "Excluir",
+      async () => {
+        try {
+          await window.deleteCustomer(customer.id);
+          showSuccess(
+            "Cliente excluído!",
+            "O cliente foi excluído com sucesso.",
+            () => {
+              loadCustomers();
+            }
+          );
+        } catch (err) {
+          console.error(err);
+          showError(
+            "Erro ao excluir",
+            err.message || "Não foi possível excluir o cliente."
+          );
+        }
+      }
+    );
   }
 
   async function loadCustomers() {
@@ -101,20 +118,32 @@ document.addEventListener("DOMContentLoaded", () => {
         const tdActions = document.createElement("td");
         tdActions.style.display = "flex";
         tdActions.style.gap = "0.5rem";
-        
+
         // Botão Bloquear/Desbloquear
         const btnBlock = document.createElement("button");
         if (c.is_blocked) {
           btnBlock.textContent = "Desbloquear";
           btnBlock.className = "btn";
           btnBlock.addEventListener("click", async () => {
-            try {
-              await window.unblockCustomer(c.id);
-              await loadCustomers();
-            } catch (err) {
-              console.error(err);
-              alert("Erro ao desbloquear cliente.");
-            }
+            showConfirm(
+              "Desbloquear cliente",
+              `Deseja desbloquear ${c.name || c.phone}?`,
+              async () => {
+                try {
+                  await window.unblockCustomer(c.id);
+                  showSuccess(
+                    "Cliente desbloqueado!",
+                    "O cliente foi desbloqueado com sucesso.",
+                    () => {
+                      loadCustomers();
+                    }
+                  );
+                } catch (err) {
+                  console.error(err);
+                  showError("Erro ao desbloquear", "Não foi possível desbloquear o cliente.");
+                }
+              }
+            );
           });
         } else {
           btnBlock.textContent = "Bloquear";

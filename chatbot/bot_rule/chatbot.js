@@ -121,7 +121,7 @@ async function saveStatus(status, phoneNumber = null) {
         bot_type: 'rule',
         last_update: new Date().toISOString()
     };
-    
+
     try {
         fs.writeFileSync(STATUS_PATH, JSON.stringify(statusData, null, 2));
         console.log(`📊 Status salvo: ${status}`);
@@ -140,7 +140,7 @@ async function loadChatbotSettings() {
             ORDER BY id
             LIMIT 1
         `);
-        
+
         if (result.rows.length > 0) {
             CHATBOT_SETTINGS = result.rows[0];
             FLOW_MODE = CHATBOT_SETTINGS.flow_mode || 'default';
@@ -157,14 +157,14 @@ async function loadProgrammedMessages() {
         console.log('📋 Usando fluxo PADRÃO (hardcoded)');
         return;
     }
-    
+
     try {
         const result = await pool.query(`
             SELECT * FROM chatbot_messages
             WHERE is_active = true
             ORDER BY order_position ASC
         `);
-        
+
         MENSAGENS_PROGRAMADAS = result.rows;
         console.log(`📋 ${MENSAGENS_PROGRAMADAS.length} mensagens personalizadas carregadas`);
     } catch (error) {
@@ -181,7 +181,7 @@ async function saveCustomer(phone, name, email = null) {
             DO UPDATE SET name = EXCLUDED.name, email = EXCLUDED.email
             RETURNING id
         `, [phone, name, email]);
-        
+
         return result.rows[0].id;
     } catch (error) {
         console.error('❌ Erro ao salvar cliente:', error);
@@ -194,7 +194,7 @@ async function checkCustomerBlocked(phone) {
         const result = await pool.query(`
             SELECT is_blocked FROM customers WHERE phone = $1
         `, [phone]);
-        
+
         if (result.rows.length > 0) {
             return result.rows[0].is_blocked;
         }
@@ -209,17 +209,17 @@ async function checkCustomerBlocked(phone) {
 
 client.on('qr', async (qrString) => {
     const now = Date.now();
-    
+
     if (now - lastQrGeneration < QR_GENERATION_INTERVAL) {
         console.log('⏭️ QR recente, aguardando intervalo...');
         return;
     }
-    
+
     lastQrGeneration = now;
     console.log('📱 QR_GENERATED');
-    
+
     await saveStatus('qr_pending');
-    
+
     try {
         await qr.toFile(QR_PATH, qrString, {
             color: { dark: '#000000', light: '#FFFFFF' },
@@ -238,12 +238,12 @@ client.on('authenticated', () => {
 client.on('ready', async () => {
     console.log('✅ WHATSAPP CONECTADO - BOT RULE ATIVO!');
     console.log('📱 Número:', client.info.wid.user);
-    
+
     await saveStatus('connected', client.info.wid.user);
-    
+
     await loadChatbotSettings();
     await loadProgrammedMessages();
-    
+
     try {
         if (fs.existsSync(QR_PATH)) {
             fs.unlinkSync(QR_PATH);
@@ -291,46 +291,46 @@ function reativarConversa(numeroTelefone) {
 
 async function iniciarConversaPadrao(msg) {
     await delay(1000);
-    
+
     const mensagem1 = `Olá, seja muito bem-vinda! 🤍\n\n` +
         `Aqui é a assistente virtual da *Pri Malzoni Estética*.\n` +
         `Vou te orientar no agendamento de forma rápida e organizada ✨\n\n` +
         `Para começarmos, poderia me informar, por favor,\n` +
         `seu *nome e sobrenome*? 🤍`;
-    
+
     await client.sendMessage(msg.from, mensagem1);
-    
+
     conversasAtivas[msg.from] = {
         etapa: 1,
         dados: {}
     };
-    
+
     console.log(`🆕 Nova conversa iniciada (modo ${FLOW_MODE}): ${msg.from}`);
 }
 
 async function processarRespostaPadrao(msg, mensagem, conversa) {
     const etapa = conversa.etapa;
-    
+
     // ETAPA 1: Nome
     if (etapa === 1) {
         conversa.dados.nome = mensagem;
         conversa.etapa = 2;
-        
+
         await delay(500);
         const mensagem2 = `Obrigada, ${mensagem}! ✨\n\n` +
             `Em qual período você prefere atendimento?\n\n` +
             `⏰ *Manhã*: das 8h às 12h\n` +
             `⏰ *Tarde*: das 14h às 18h\n\n` +
             `_Por favor, responda com *manhã* ou *tarde*_`;
-        
+
         await client.sendMessage(msg.from, mensagem2);
         return;
     }
-    
+
     // ETAPA 2: Período
     if (etapa === 2) {
         const mensagemLower = mensagem.toLowerCase().trim();
-        
+
         if (mensagemLower.includes('manhã') || mensagemLower.includes('manha')) {
             conversa.dados.periodo = 'Manhã (8h às 12h)';
         } else if (mensagemLower.includes('tarde')) {
@@ -339,21 +339,21 @@ async function processarRespostaPadrao(msg, mensagem, conversa) {
             await client.sendMessage(msg.from, `Por favor, informe *manhã* ou *tarde* 🤍`);
             return;
         }
-        
+
         conversa.etapa = 3;
-        
+
         await delay(500);
         let mensagem3 = `Perfeito! 🤍\nAgora me diga, por gentileza,\nqual procedimento você deseja realizar:\n\n`;
-        
+
         Object.keys(SERVICOS).forEach(id => {
             const servico = SERVICOS[id];
             mensagem3 += `*${id}* - ${servico.nome} ${servico.preco}\n`;
         });
-        
+
         mensagem3 += `\nConfira o catálogo do whats e conheça os serviços também! 🥰`;
-        
+
         await client.sendMessage(msg.from, mensagem3);
-        
+
         // Enviar catálogo em PDF após 2 segundos
         await delay(2000);
         try {
@@ -369,22 +369,22 @@ async function processarRespostaPadrao(msg, mensagem, conversa) {
         } catch (error) {
             console.error('❌ Erro ao enviar catálogo:', error);
         }
-        
+
         return;
     }
-    
+
     // ETAPA 3: Serviço
     if (etapa === 3) {
         const numeroServico = parseInt(mensagem.trim());
-        
+
         if (SERVICOS[numeroServico]) {
             const servico = SERVICOS[numeroServico];
             conversa.dados.servico = `${servico.nome} - ${servico.preco}`;
             conversa.etapa = 4;
-            
+
             const phone = msg.from.replace('@c.us', '');
             await saveCustomer(phone, conversa.dados.nome);
-            
+
             await delay(500);
             const mensagem4 = `Ótimo ✨\n` +
                 `Agora vou te mostrar as formas disponíveis para seguir com o agendamento 👇\n\n` +
@@ -402,9 +402,9 @@ async function processarRespostaPadrao(msg, mensagem, conversa) {
                 `━━━━━━━━━━━━━━━\n\n` +
                 `✅ Seu atendimento foi registrado!\n\n` +
                 `_Se precisar de um novo atendimento, digite *${PALAVRA_CHAVE_REATIVAR}* 🤍_`;
-            
+
             await client.sendMessage(msg.from, mensagem4);
-            
+
             encerrarConversa(msg.from);
         } else {
             await client.sendMessage(msg.from, `Número inválido. Escolha entre 1 e 26 🤍`);
@@ -414,35 +414,89 @@ async function processarRespostaPadrao(msg, mensagem, conversa) {
 
 // ==================== FLUXO PERSONALIZADO ====================
 
+async function iniciarConversaPersonalizado(msg) {
+    // Recarrega mensagens do banco para garantir dados atualizados
+    await loadProgrammedMessages();
+
+    if (MENSAGENS_PROGRAMADAS.length === 0) {
+        console.warn('⚠️ Nenhuma mensagem personalizada cadastrada, usando fluxo padrão');
+        await iniciarConversaPadrao(msg);
+        return;
+    }
+
+    await delay(1000);
+
+    const primeiraMensagem = MENSAGENS_PROGRAMADAS[0];
+    await client.sendMessage(msg.from, primeiraMensagem.message_text);
+
+    conversasAtivas[msg.from] = {
+        indice: 0,
+        dados: {},
+        aguardandoResposta: primeiraMensagem.wait_for_reply
+    };
+
+    console.log(`🆕 Nova conversa PERSONALIZADA iniciada: ${msg.from}`);
+
+    // Se a primeira mensagem não aguarda resposta, avança automaticamente
+    if (!primeiraMensagem.wait_for_reply) {
+        await avancarFluxoPersonalizado(msg);
+    }
+}
+
+async function avancarFluxoPersonalizado(msg) {
+    const conversa = conversasAtivas[msg.from];
+    if (!conversa) return;
+
+    conversa.indice++;
+
+    if (conversa.indice >= MENSAGENS_PROGRAMADAS.length) {
+        encerrarConversa(msg.from);
+        console.log(`✅ Fluxo personalizado concluído: ${msg.from}`);
+        return;
+    }
+
+    const proxMensagem = MENSAGENS_PROGRAMADAS[conversa.indice];
+    await delay(800);
+    await client.sendMessage(msg.from, proxMensagem.message_text);
+
+    conversa.aguardandoResposta = proxMensagem.wait_for_reply;
+
+    // Se não aguarda resposta, continua avançando automaticamente
+    if (!proxMensagem.wait_for_reply) {
+        await avancarFluxoPersonalizado(msg);
+    }
+}
+
 async function processarRespostaPersonalizado(msg, mensagem, conversa) {
-    // TODO: Implementar lógica de mensagens personalizadas do banco
-    // Por enquanto usa o fluxo padrão
-    await processarRespostaPadrao(msg, mensagem, conversa);
+    if (!conversa.aguardandoResposta) {
+        return; 
+    }
+    await avancarFluxoPersonalizado(msg);
 }
 
 // ==================== HANDLER PRINCIPAL ====================
 
 async function handleMessage(msg) {
     try {
-        if (msg.from.includes('@g.us') || 
-            msg.from.includes('@newsletter') || 
+        if (msg.from.includes('@g.us') ||
+            msg.from.includes('@newsletter') ||
             msg.from.includes('@broadcast') ||
-            msg.fromMe || 
-            !msg.body || 
+            msg.fromMe ||
+            !msg.body ||
             msg.body.trim() === '') {
             return;
         }
-        
+
         const mensagem = msg.body.trim();
         const mensagemLower = mensagem.toLowerCase();
         const phone = msg.from.replace('@c.us', '');
-        
+
         const isBlocked = await checkCustomerBlocked(phone);
         if (isBlocked) {
             console.log(`🚫 Cliente bloqueado: ${msg.from}`);
             return;
         }
-        
+
         if (conversasEncerradas.has(msg.from)) {
             if (mensagemLower === PALAVRA_CHAVE_REATIVAR) {
                 reativarConversa(msg.from);
@@ -450,23 +504,27 @@ async function handleMessage(msg) {
             }
             return;
         }
-        
+
         console.log(`🔔 MENSAGEM de ${msg.from}: "${mensagem}"`);
-        
+
         const conversa = conversasAtivas[msg.from];
-        
+
         if (!conversa) {
-            await iniciarConversaPadrao(msg);
+            if (FLOW_MODE === 'custom') {
+                await iniciarConversaPersonalizado(msg);
+            } else {
+                await iniciarConversaPadrao(msg);
+            }
             return;
         }
-        
+
         // Escolher fluxo baseado no modo
         if (FLOW_MODE === 'default') {
             await processarRespostaPadrao(msg, mensagem, conversa);
         } else {
             await processarRespostaPersonalizado(msg, mensagem, conversa);
         }
-        
+
     } catch (error) {
         console.error('❌ ERRO no handleMessage:', error);
         resetarConversa(msg.from);
@@ -480,15 +538,15 @@ client.on('message_create', handleMessage);
 (async () => {
     console.log('🚀 Iniciando Bot WhatsApp - MODO PROGRAMADO');
     console.log('📱 Aguardando autenticação...\n');
-    
+
     await saveStatus('disconnected');
     await loadChatbotSettings();
     await loadProgrammedMessages();
-    
+
     console.log(`💆 ${Object.keys(SERVICOS).length} serviços carregados`);
-    
+
     client.initialize();
-    
+
     console.log('\n✨ Bot Rule configurado e pronto!\n');
     console.log(`🔑 Palavra-chave para reativar: "${PALAVRA_CHAVE_REATIVAR}"`);
     console.log(`🔀 Modo de fluxo: ${FLOW_MODE}`);
