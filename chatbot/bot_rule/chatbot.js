@@ -461,7 +461,7 @@ async function avancarFluxoPersonalizado(msg) {
 
     conversa.aguardandoResposta = proxMensagem.wait_for_reply;
 
-    // Se não aguarda resposta, continua avançando automaticamente
+    
     if (!proxMensagem.wait_for_reply) {
         await avancarFluxoPersonalizado(msg);
     }
