@@ -14,6 +14,32 @@ class CustomerBlockUpdate(BaseModel):
     blocked_reason: str | None = Field(None, example="Faltas repetidas")
 
 
+@router.get("/")
+def list_customers():
+    conn = get_connection()
+    try:
+        with conn, conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT
+                  c.id,
+                  c.name,
+                  c.phone,
+                  c.is_blocked,
+                  c.blocked_reason,
+                  COUNT(a.id) AS total_appointments,
+                  MAX(a.date) AS last_appointment_date
+                FROM customers c
+                LEFT JOIN appointments a ON a.customer_id = c.id
+                GROUP BY c.id, c.name, c.phone, c.is_blocked, c.blocked_reason
+                ORDER BY c.is_blocked DESC, last_appointment_date DESC NULLS LAST;
+                """
+            )
+            rows = cur.fetchall()
+        return rows
+    finally:
+        conn.close()
+
 @router.get("/{customer_id}")
 def get_customer(customer_id: int):
     conn = get_connection()
@@ -55,32 +81,6 @@ def update_block_status(customer_id: int, data: CustomerBlockUpdate):
             if not row:
                 raise HTTPException(status_code=404, detail="Cliente não encontrado")
             return row
-    finally:
-        conn.close()
-
-@router.get("/")
-def list_customers():
-    conn = get_connection()
-    try:
-        with conn, conn.cursor() as cur:
-            cur.execute(
-                """
-                SELECT
-                  c.id,
-                  c.name,
-                  c.phone,
-                  c.is_blocked,
-                  c.blocked_reason,
-                  COUNT(a.id) AS total_appointments,
-                  MAX(a.date) AS last_appointment_date
-                FROM customers c
-                LEFT JOIN appointments a ON a.customer_id = c.id
-                GROUP BY c.id, c.name, c.phone, c.is_blocked, c.blocked_reason
-                ORDER BY c.is_blocked DESC, last_appointment_date DESC NULLS LAST;
-                """
-            )
-            rows = cur.fetchall()
-        return rows
     finally:
         conn.close()
 
