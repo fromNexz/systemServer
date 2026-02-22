@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 from sqlalchemy import text
+from pydantic import BaseModel
 
 from db import get_connection
 import schemas
@@ -13,6 +14,10 @@ class CustomerBlockUpdate(BaseModel):
     is_blocked: bool = Field(..., example=True)
     blocked_reason: str | None = Field(None, example="Faltas repetidas")
 
+class CustomerCreate(BaseModel):
+    phone: str
+    name: str = "Bloqueada manualmente"
+    channel: str = "manual"
 
 @router.get("/")
 def list_customers():
@@ -37,6 +42,23 @@ def list_customers():
             )
             rows = cur.fetchall()
         return rows
+    finally:
+        conn.close()
+
+@router.post("/")
+def create_customer(data: CustomerCreate):
+    conn = get_connection()
+    try:
+        with conn, conn.cursor() as cur:
+            cur.execute("""
+                INSERT INTO customers (phone, name, channel, created_at)
+                VALUES (%s, %s, %s, NOW())
+                ON CONFLICT ON CONSTRAINT customers_phone_unique
+                DO UPDATE SET name = EXCLUDED.name
+                RETURNING id, phone, name
+            """, (data.phone, data.name, data.channel))
+            row = cur.fetchone()
+            return row
     finally:
         conn.close()
 

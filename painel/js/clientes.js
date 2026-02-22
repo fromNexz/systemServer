@@ -117,27 +117,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const tdActions = document.createElement("td");
         tdActions.style.display = "flex";
-        tdActions.style.gap = "0.5rem";
+        tdActions.style.gap = "0.4rem";
+        tdActions.style.alignItems = "center";
 
-        // Botão Bloquear/Desbloquear
-        const btnBlock = document.createElement("button");
         if (c.is_blocked) {
-          btnBlock.textContent = "Desbloquear";
-          btnBlock.className = "btn";
-          btnBlock.addEventListener("click", async () => {
-            showConfirm(
+          const btnUnblock = document.createElement("button");
+          btnUnblock.textContent = "Desbloquear";
+          btnUnblock.className = "btn-action btn-unblock";
+          btnUnblock.addEventListener("click", async () => {
+            window.showConfirm(
               "Desbloquear cliente",
               `Deseja desbloquear ${c.name || c.phone}?`,
               async () => {
                 try {
                   await window.unblockCustomer(c.id);
-                  showSuccess(
-                    "Cliente desbloqueado!",
-                    "O cliente foi desbloqueado com sucesso.",
-                    () => {
-                      loadCustomers();
-                    }
-                  );
+                  showSuccess("Cliente desbloqueado!", "O cliente foi desbloqueado com sucesso.", () => { loadCustomers(); });
                 } catch (err) {
                   console.error(err);
                   showError("Erro ao desbloquear", "Não foi possível desbloquear o cliente.");
@@ -145,18 +139,18 @@ document.addEventListener("DOMContentLoaded", () => {
               }
             );
           });
+          tdActions.appendChild(btnUnblock);
         } else {
+          const btnBlock = document.createElement("button");
           btnBlock.textContent = "Bloquear";
-          btnBlock.className = "btn btn-danger";
+          btnBlock.className = "btn-action btn-block";
           btnBlock.addEventListener("click", () => openModal(c));
+          tdActions.appendChild(btnBlock);
         }
-        tdActions.appendChild(btnBlock);
 
-        // Botão Excluir
         const btnDelete = document.createElement("button");
         btnDelete.textContent = "Excluir";
-        btnDelete.className = "btn btn-danger";
-        btnDelete.style.background = "#dc3545";
+        btnDelete.className = "btn-action btn-delete";
         btnDelete.addEventListener("click", () => deleteCustomerHandler(c));
         tdActions.appendChild(btnDelete);
 

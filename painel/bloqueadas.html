@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>PriSystem - Bloqueadas</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="/css/style.css" />
+</head>
+
+<body>
+    <div class="app-shell">
+        <header class="app-header">
+            <div class="app-header-title">PriSystem</div>
+            <div class="app-header-status">
+                <span id="header-date"></span>
+            </div>
+        </header>
+
+        <main class="app-main">
+            <aside class="sidebar">
+                <ul class="sidebar-nav">
+                    <li><a href="dashboard.html" class="sidebar-link">Dashboard</a></li>
+                    <li><a href="/index.html" class="sidebar-link">Agendamentos</a></li>
+                    <li><a href="/clientes.html" class="sidebar-link">Clientes</a></li>
+                    <li><a href="/bloqueadas.html" class="sidebar-link active">Bloqueadas</a></li>
+                    <li><a href="/settings.html" class="sidebar-link">Configurações</a></li>
+                </ul>
+            </aside>
+
+            <section class="content">
+                <div class="card">
+                    <h1 class="card-title">Clientes Bloqueadas</h1>
+                    <p class="form-label">Números bloqueados não recebem resposta do chatbot.</p>
+
+                    <!-- Adicionar número manualmente -->
+                    <div style="display: flex; gap: 0.75rem; margin: 1.25rem 0; align-items: flex-end;">
+                        <div style="flex: 1;">
+                            <label class="form-label" for="input-phone">Número (com DDI, ex: 5551999999999)</label>
+                            <input type="text" id="input-phone" class="form-input"
+                                placeholder="5551999999999" maxlength="20" />
+                        </div>
+                        <div style="flex: 1;">
+                            <label class="form-label" for="input-name">Nome (opcional)</label>
+                            <input type="text" id="input-name" class="form-input"
+                                placeholder="Nome da cliente" maxlength="120" />
+                        </div>
+                        <div style="flex: 1;">
+                            <label class="form-label" for="input-reason">Motivo (opcional)</label>
+                            <input type="text" id="input-reason" class="form-input"
+                                placeholder="Ex: Spam, cliente problemática..." maxlength="200" />
+                        </div>
+                        <button id="btn-add-block" class="button-primary" style="white-space: nowrap;">
+                            + Bloquear número
+                        </button>
+                    </div>
+
+                    <!-- Tabela -->
+                    <div class="appointments-table-wrapper">
+                        <table class="appointments-table">
+                            <thead>
+                                <tr>
+                                    <th>Nome</th>
+                                    <th>Telefone</th>
+                                    <th>Motivo</th>
+                                    <th>Bloqueada desde</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="blocked-body">
+                                <tr>
+                                    <td colspan="5">Carregando...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Modal customizado -->
+    <div id="custom-modal" class="modal-overlay-custom">
+        <div class="modal-content-custom">
+            <div id="modal-icon" class="modal-icon-custom">
+                <svg id="modal-icon-svg" xmlns="http://www.w3.org/2000/svg" width="48" height="48"
+                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <g id="modal-icon-svg"></g>
+                </svg>
+            </div>
+            <h3 id="modal-title" class="modal-title-custom"></h3>
+            <div id="modal-body" class="modal-body-custom"></div>
+            <div id="modal-footer" class="modal-footer-custom"></div>
+        </div>
+    </div>
+
+    <script src="/js/api.js"></script>
+    <script src="/js/modal.js"></script>
+    <script src="/js/bloqueadas.js"></script>
+</body>
+
+</html>
