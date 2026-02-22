@@ -8,6 +8,27 @@
     <link rel="stylesheet" href="/css/style.css" />
 </head>
 
+<script>
+
+    (async function checkAuth() {
+
+        if (window.location.pathname.startsWith('/pri/')) {
+            try {
+                const response = await fetch('/auth/me', {
+                    credentials: 'include'
+                });
+
+                if (!response.ok) {
+
+                    window.location.href = '/login.html';
+                }
+            } catch (error) {
+                window.location.href = '/login.html';
+            }
+        }
+    })();
+</script>
+
 <body>
     <div class="app-shell">
         <header class="app-header">
@@ -37,13 +58,13 @@
                     <div style="display: flex; gap: 0.75rem; margin: 1.25rem 0; align-items: flex-end;">
                         <div style="flex: 1;">
                             <label class="form-label" for="input-phone">Número (com DDI, ex: 5551999999999)</label>
-                            <input type="text" id="input-phone" class="form-input"
-                                placeholder="5551999999999" maxlength="20" />
+                            <input type="text" id="input-phone" class="form-input" placeholder="5551999999999"
+                                maxlength="20" />
                         </div>
                         <div style="flex: 1;">
                             <label class="form-label" for="input-name">Nome (opcional)</label>
-                            <input type="text" id="input-name" class="form-input"
-                                placeholder="Nome da cliente" maxlength="120" />
+                            <input type="text" id="input-name" class="form-input" placeholder="Nome da cliente"
+                                maxlength="120" />
                         </div>
                         <div style="flex: 1;">
                             <label class="form-label" for="input-reason">Motivo (opcional)</label>
@@ -83,9 +104,8 @@
     <div id="custom-modal" class="modal-overlay-custom">
         <div class="modal-content-custom">
             <div id="modal-icon" class="modal-icon-custom">
-                <svg id="modal-icon-svg" xmlns="http://www.w3.org/2000/svg" width="48" height="48"
-                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                    stroke-linecap="round" stroke-linejoin="round">
+                <svg id="modal-icon-svg" xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24"
+                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <g id="modal-icon-svg"></g>
                 </svg>
             </div>

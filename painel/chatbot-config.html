@@ -9,6 +9,27 @@
     <link rel="stylesheet" href="/css/style.css" />
 </head>
 
+<script>
+
+    (async function checkAuth() {
+
+        if (window.location.pathname.startsWith('/pri/')) {
+            try {
+                const response = await fetch('/auth/me', {
+                    credentials: 'include'
+                });
+
+                if (!response.ok) {
+
+                    window.location.href = '/login.html';
+                }
+            } catch (error) {
+                window.location.href = '/login.html';
+            }
+        }
+    })();
+</script>
+
 <body>
     <div class="app-shell">
         <header class="app-header">
@@ -32,6 +53,7 @@
                     <li><a href="dashboard.html" class="sidebar-link">Dashboard</a></li>
                     <li><a href="index.html" class="sidebar-link">Agendamentos</a></li>
                     <li><a href="clientes.html" class="sidebar-link">Clientes</a></li>
+                    <li><a href="/bloqueadas.html" class="sidebar-link">Bloqueadas</a></li>
                     <li><a href="settings.html" class="sidebar-link active">Configurações</a></li>
                 </ul>
             </aside>

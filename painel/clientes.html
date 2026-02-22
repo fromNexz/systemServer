@@ -8,6 +8,27 @@
     <link rel="stylesheet" href="/css/style.css" />
 </head>
 
+<script>
+
+    (async function checkAuth() {
+
+        if (window.location.pathname.startsWith('/pri/')) {
+            try {
+                const response = await fetch('/auth/me', {
+                    credentials: 'include'
+                });
+
+                if (!response.ok) {
+
+                    window.location.href = '/login.html';
+                }
+            } catch (error) {
+                window.location.href = '/login.html';
+            }
+        }
+    })();
+</script>
+
 <body>
     <div class="app-shell">
         <header class="app-header">

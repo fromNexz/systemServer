@@ -79,7 +79,7 @@ def get_chatbot_settings():
 
 
 @router.put("/flow-mode")
-def update_flow_mode(mode: str = Query(..., regex="^(default|custom)$")):
+def update_flow_mode(mode: str = Query(..., pattern="^(default|custom)$")):
     """Atualiza o modo de fluxo (default ou custom)"""
     conn = None
     try:
