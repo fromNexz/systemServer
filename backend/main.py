@@ -1,19 +1,16 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import RedirectResponse
 from routers import appointments, customers, settings, chatbot, dashboard, chatbot_messages, whatsapp, auth
 from middleware_auth import check_auth_middleware
 
 app = FastAPI(title="PriSystem API")
 
-# Adicionar middleware de autenticação
+# Middleware de autenticação (antes de tudo)
 app.middleware("http")(check_auth_middleware)
 
 # CORS
-origins = [
-    "http://127.0.0.1:8000",
-]
-
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -36,8 +33,12 @@ app.include_router(auth.router)
 def root():
     return {"message": "PriSystem API online"}
 
-# Servir arquivos protegidos em /pri/ (mesmos arquivos do painel)
-app.mount("/pri", StaticFiles(directory="../painel", html=True), name="pri")
+@app.get("/")
+def redirect_root():
+    return RedirectResponse(url="/login.html")
 
-# Servir arquivos públicos na raiz (apenas login)
+# UM ÚNICO mount para tudo — raiz serve o painel inteiro
+# /css/, /js/, /login.html ficam acessíveis normalmente
+# /pri/dashboard.html também funciona pois aponta pra mesma pasta
+app.mount("/pri", StaticFiles(directory="../painel", html=True), name="pri")
 app.mount("/", StaticFiles(directory="../painel", html=True), name="painel")
