@@ -37,8 +37,11 @@ async function loadDashboardStats() {
             chatbotEl.textContent = "IA ativo";
             chatbotCard.classList.add("stat-success");
         } else if (stats.chatbot_status === "scheduled") {
-            chatbotEl.textContent = "Programado";
-            chatbotCard.classList.add("stat-info");
+            chatbotEl.textContent = "Ativo";           
+            chatbotCard.classList.add("stat-success"); 
+        } else if (stats.chatbot_status === "qr_pending") {
+            chatbotEl.textContent = "Aguardando QR";
+            chatbotCard.classList.add("stat-warning");
         } else {
             chatbotEl.textContent = "Inativo";
             chatbotCard.classList.add("stat-muted");

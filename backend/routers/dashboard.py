@@ -1,6 +1,8 @@
 from fastapi import APIRouter
 from datetime import date
 from db import get_connection
+import json as _json 
+import os as _os
 
 router = APIRouter(prefix="/dashboard", tags=["dashboard"])
 
@@ -56,19 +58,21 @@ def get_dashboard_stats():
         # Status do chatbot (da tabela settings) - com tratamento de erro
         chatbot_status = "none"
         try:
-            cur.execute("""
-                SELECT active_mode
-                FROM settings
-                WHERE key = 'chatbot'
-                LIMIT 1
-            """)
-            chatbot_row = cur.fetchone()
-            if chatbot_row and "active_mode" in chatbot_row:
-                chatbot_status = chatbot_row["active_mode"]
+            status_file = _os.path.join(_os.path.dirname(__file__), '..', '..', 'data', 'bot_status.json')
+            status_file = _os.path.abspath(status_file)
+            if _os.path.exists(status_file):
+                with open(status_file, 'r') as f:
+                    status_data = _json.load(f)
+                bot_status = status_data.get('status', 'disconnected')
+                if bot_status == 'connected':
+                    chatbot_status = 'scheduled' 
+                elif bot_status == 'qr_pending':
+                    chatbot_status = 'qr_pending'
+                else:
+                    chatbot_status = 'none'
         except Exception:
-            # Se não existir a tabela ou coluna, ignora
             pass
-        
+            
         # Próximos agendamentos (hoje, ordenados por hora)
         cur.execute("""
             SELECT 

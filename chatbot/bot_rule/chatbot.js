@@ -15,7 +15,7 @@ const IMAGE_DIR = path.join(DATA_DIR, 'image');
 const ASSETS_DIR = path.join(DATA_DIR, 'assets');
 const QR_PATH = path.join(IMAGE_DIR, 'whatsapp_qr.png');
 const STATUS_PATH = path.join(DATA_DIR, 'bot_status.json');
-const CATALOGO_PATH = path.join(ASSETS_DIR, 'catalogo.pdf');
+const CATALOGO_PATH = '/assets/docs/catalogo.pdf';
 
 [DATA_DIR, IMAGE_DIR, ASSETS_DIR].forEach(dir => {
     if (!fs.existsSync(dir)) {
@@ -177,8 +177,9 @@ async function saveCustomer(phone, name, email = null) {
         const result = await pool.query(`
             INSERT INTO customers (phone, name, email, channel, created_at)
             VALUES ($1, $2, $3, 'whatsapp', NOW())
-            ON CONFLICT (phone) 
-            DO UPDATE SET name = EXCLUDED.name, email = EXCLUDED.email
+            ON CONFLICT ON CONSTRAINT customers_phone_unique DO UPDATE SET
+            name = EXCLUDED.name,
+            email = EXCLUDED.email
             RETURNING id
         `, [phone, name, email]);
 
@@ -186,6 +187,25 @@ async function saveCustomer(phone, name, email = null) {
     } catch (error) {
         console.error('❌ Erro ao salvar cliente:', error);
         return null;
+    }
+}
+
+async function saveAppointment(customerId, serviceName, periodo) {
+    try {
+        // Determinar horário padrão baseado no período
+        const startTime = periodo && periodo.includes('Manhã') ? '09:00:00' : '15:00:00';
+
+        await pool.query(`
+            INSERT INTO appointments (customer_id, service_id, date, start_time, status, notes, created_at)
+            SELECT $1, s.id, CURRENT_DATE, $2, 'pending', $3, NOW()
+            FROM services s
+            WHERE s.name ILIKE $4
+            LIMIT 1
+        `, [customerId, startTime, `Período preferido: ${periodo}`, `%${serviceName}%`]);
+
+        console.log(`📅 Agendamento salvo para customer_id: ${customerId}`);
+    } catch (error) {
+        console.error('❌ Erro ao salvar agendamento:', error);
     }
 }
 
@@ -316,13 +336,17 @@ async function processarRespostaPadrao(msg, mensagem, conversa) {
         conversa.dados.nome = mensagem;
         conversa.etapa = 2;
 
+        const phone = msg.from.replace('@c.us', '');
+        const customerId = await saveCustomer(phone, mensagem);
+        conversa.dados.customerId = customerId;
+        console.log(`📱 Cliente salvo: ${phone} | Nome: ${mensagem} | ID: ${customerId}`);
+
         await delay(500);
         const mensagem2 = `Obrigada, ${mensagem}! ✨\n\n` +
             `Em qual período você prefere atendimento?\n\n` +
             `⏰ *Manhã*: das 8h às 12h\n` +
             `⏰ *Tarde*: das 14h às 18h\n\n` +
             `_Por favor, responda com *manhã* ou *tarde*_`;
-
         await client.sendMessage(msg.from, mensagem2);
         return;
     }
@@ -358,7 +382,7 @@ async function processarRespostaPadrao(msg, mensagem, conversa) {
         await delay(2000);
         try {
             if (fs.existsSync(CATALOGO_PATH)) {
-                const media = MessageMedia.fromFilePath(CATALOGO_PATH);
+                const media = "/assets/docs/catalogo.pdf";
                 await client.sendMessage(msg.from, media, {
                     caption: '📄 Catálogo Pri Malzoni Estética'
                 });
@@ -376,14 +400,24 @@ async function processarRespostaPadrao(msg, mensagem, conversa) {
     // ETAPA 3: Serviço
     if (etapa === 3) {
         const numeroServico = parseInt(mensagem.trim());
-
         if (SERVICOS[numeroServico]) {
             const servico = SERVICOS[numeroServico];
             conversa.dados.servico = `${servico.nome} - ${servico.preco}`;
             conversa.etapa = 4;
 
+
             const phone = msg.from.replace('@c.us', '');
-            await saveCustomer(phone, conversa.dados.nome);
+            let customerId = conversa.dados.customerId;
+
+            // Fallback: se por algum motivo não tiver o ID, salva de novo
+            if (!customerId) {
+                customerId = await saveCustomer(phone, conversa.dados.nome);
+                conversa.dados.customerId = customerId;
+            }
+
+            if (customerId) {
+                await saveAppointment(customerId, servico.nome, conversa.dados.periodo);
+            }
 
             await delay(500);
             const mensagem4 = `Ótimo ✨\n` +
@@ -402,9 +436,7 @@ async function processarRespostaPadrao(msg, mensagem, conversa) {
                 `━━━━━━━━━━━━━━━\n\n` +
                 `✅ Seu atendimento foi registrado!\n\n` +
                 `_Se precisar de um novo atendimento, digite *${PALAVRA_CHAVE_REATIVAR}* 🤍_`;
-
             await client.sendMessage(msg.from, mensagem4);
-
             encerrarConversa(msg.from);
         } else {
             await client.sendMessage(msg.from, `Número inválido. Escolha entre 1 e 26 🤍`);
@@ -461,7 +493,7 @@ async function avancarFluxoPersonalizado(msg) {
 
     conversa.aguardandoResposta = proxMensagem.wait_for_reply;
 
-    
+
     if (!proxMensagem.wait_for_reply) {
         await avancarFluxoPersonalizado(msg);
     }
@@ -469,7 +501,7 @@ async function avancarFluxoPersonalizado(msg) {
 
 async function processarRespostaPersonalizado(msg, mensagem, conversa) {
     if (!conversa.aguardandoResposta) {
-        return; 
+        return;
     }
     await avancarFluxoPersonalizado(msg);
 }
