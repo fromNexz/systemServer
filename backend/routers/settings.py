@@ -18,7 +18,8 @@ class ChatbotSettings(BaseModel):
 
 
 class ChatbotSettingsUpdate(BaseModel):
-    active_bot_type: str | None = Field(None, pattern="^(rule|ai)$", example="rule")
+    active_bot_type: str | None = Field(
+        None, pattern="^(rule|ai|programado)$", example="rule")
     welcome_message: str | None = None
     closing_message: str | None = None
     business_open_hour: str | None = Field(None, example="09:00")
@@ -52,7 +53,8 @@ def get_chatbot_settings():
             )
             row = cur.fetchone()
             if not row:
-                raise HTTPException(status_code=404, detail="Configurações não encontradas")
+                raise HTTPException(
+                    status_code=404, detail="Configurações não encontradas")
             return row
     finally:
         conn.close()
@@ -84,16 +86,17 @@ def update_chatbot_settings(data: ChatbotSettingsUpdate):
             )
             current = cur.fetchone()
             if not current:
-                raise HTTPException(status_code=404, detail="Configurações não encontradas")
+                raise HTTPException(
+                    status_code=404, detail="Configurações não encontradas")
 
             # aplica "patch" nos campos
             new_values = {
-                "active_bot_type": data.active_bot_type or current["active_bot_type"],
-                "welcome_message": data.welcome_message or current["welcome_message"],
-                "closing_message": data.closing_message or current["closing_message"],
-                "business_open_hour": data.business_open_hour or current["business_open_hour"],
-                "business_close_hour": data.business_close_hour or current["business_close_hour"],
-                "timezone": data.timezone or current["timezone"],
+                "active_bot_type": data.active_bot_type if data.active_bot_type is not None else current["active_bot_type"],
+                "welcome_message": data.welcome_message if data.welcome_message is not None else current["welcome_message"],
+                "closing_message": data.closing_message if data.closing_message is not None else current["closing_message"],
+                "business_open_hour": data.business_open_hour if data.business_open_hour is not None else current["business_open_hour"],
+                "business_close_hour": data.business_close_hour if data.business_close_hour is not None else current["business_close_hour"],
+                "timezone": data.timezone if data.timezone is not None else current["timezone"],
                 "notes": data.notes if data.notes is not None else current["notes"],
             }
 

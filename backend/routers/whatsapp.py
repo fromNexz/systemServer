@@ -209,28 +209,38 @@ def start_bot():
 @router.post("/stop")
 def stop_bot():
     """Para o bot do WhatsApp"""
+    
+    if PID_FILE.exists():
+        try:
+            with open(PID_FILE, "r") as f:
+                pid = int(f.read().strip())
+            if not psutil.pid_exists(pid):
+                PID_FILE.unlink()  
+        except Exception:
+            if PID_FILE.exists():
+                PID_FILE.unlink()
 
     if not is_bot_running():
-        return {"message": "Bot não está rodando", "success": False}
+        
+        if QR_PATH.exists():
+            QR_PATH.unlink()
+        status_file = DATA_DIR / "bot_status.json"
+        if status_file.exists():
+            status_file.unlink()
+        return {"message": "Bot não estava rodando. Arquivos limpos.", "success": True}
 
     try:
         if kill_bot_process():
-            # Limpar QR Code e status ao parar
             if QR_PATH.exists():
                 QR_PATH.unlink()
-
             status_file = DATA_DIR / "bot_status.json"
             if status_file.exists():
                 status_file.unlink()
-
             return {"message": "Bot parado com sucesso!", "success": True}
         else:
             return {"message": "Erro ao parar bot", "success": False}
     except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Erro ao parar bot: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Erro ao parar bot: {str(e)}")
 
 
 @router.post("/restart")
