@@ -20,13 +20,13 @@ app.add_middleware(
 )
 
 # Routers da API
-app.include_router(appointments.router)
-app.include_router(customers.router)
-app.include_router(settings.router)
-app.include_router(chatbot.router)
-app.include_router(dashboard.router)
-app.include_router(chatbot_messages.router)
-app.include_router(whatsapp.router)
+app.include_router(appointments.router, prefix="/api")
+app.include_router(customers.router, prefix="/api")
+app.include_router(settings.router, prefix="/api")
+app.include_router(chatbot.router, prefix="/api")
+app.include_router(dashboard.router, prefix="/api")  # Já deve ter
+app.include_router(chatbot_messages.router, prefix="/api")
+app.include_router(whatsapp.router, prefix="/api")
 app.include_router(auth.router)
 
 @app.get("/api")

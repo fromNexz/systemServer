@@ -3,7 +3,7 @@
 document.addEventListener("DOMContentLoaded", () => {
     const headerDate = document.getElementById("header-date");
 
-    // Mostrar data de hoje no header
+
     const today = new Date();
     headerDate.textContent = today.toLocaleDateString("pt-BR", {
         weekday: "long",
@@ -22,7 +22,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 async function loadDashboardStats() {
     try {
-        const stats = await fetch("/dashboard/stats").then(r => r.json());
+        const stats = await fetch("/api/dashboard/stats").then(r => r.json());
 
         document.getElementById("stat-appointments-today").textContent = stats.appointments_today;
         document.getElementById("stat-pending").textContent = stats.pending_today;
@@ -58,7 +58,7 @@ async function loadAppointments() {
     tbody.innerHTML = "<tr><td colspan='8'>Carregando...</td></tr>";
 
     try {
-        const url = filterDate ? `/appointments/?date=${filterDate}` : '/appointments/';
+        const url = filterDate ? `/api/appointments/?date=${filterDate}` : '/api/appointments/';
         const appointments = await fetch(url).then(r => r.json());
 
         tbody.innerHTML = "";
@@ -186,7 +186,7 @@ document.getElementById("edit-form").addEventListener("submit", async (e) => {
     console.log("Enviando:", payload);  // Debug
 
     try {
-        const response = await fetch(`/appointments/${id}`, {
+        const response = await fetch(`/api/appointments/${id}`, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload)
@@ -232,7 +232,7 @@ async function deleteAppointment(id) {
         "Excluir",
         async () => {
             try {
-                const response = await fetch(`/appointments/${id}`, {
+                const response = await fetch(`/api/appointments/${id}`, {
                     method: "DELETE"
                 });
                 if (!response.ok) throw new Error("Erro ao excluir");

@@ -1,4 +1,4 @@
-const API_BASE_URL = "";
+const API_BASE_URL = "/api";
 
 async function apiGet(path) {
   const res = await fetch(`${API_BASE_URL}${path}`, {
@@ -78,7 +78,7 @@ window.unblockCustomer = function (customerId) {
 };
 
 window.deleteCustomer = async function(customerId) {
-  const response = await fetch(`/customers/${customerId}`, {
+  const response = await fetch(`/api/customers/${customerId}`, {
     method: 'DELETE'
   });
   if (!response.ok) {

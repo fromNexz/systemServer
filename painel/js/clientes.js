@@ -1,12 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
   const tbody = document.getElementById("customers-body");
-  const modal = document.getElementById("block-modal");
-  const modalText = document.getElementById("block-modal-text");
-  const reasonInput = document.getElementById("block-reason");
-  const cancelBtn = document.getElementById("block-cancel");
-  const confirmBtn = document.getElementById("block-confirm");
-
-  let currentCustomer = null;
 
   function formatDate(d) {
     if (!d) return "-";
@@ -14,43 +7,6 @@ document.addEventListener("DOMContentLoaded", () => {
     if (Number.isNaN(date.getTime())) return "-";
     return date.toLocaleDateString("pt-BR");
   }
-
-  function openModal(customer) {
-    currentCustomer = customer;
-    modalText.textContent = `${customer.name || ""} (${customer.phone})`;
-    reasonInput.value = "";
-    modal.classList.remove("hidden");
-  }
-
-  function closeModal() {
-    currentCustomer = null;
-    modal.classList.add("hidden");
-  }
-
-  cancelBtn.addEventListener("click", closeModal);
-
-  confirmBtn.addEventListener("click", async () => {
-    if (!currentCustomer) return;
-    const reason = reasonInput.value.trim() || "Bloqueado via painel";
-    confirmBtn.disabled = true;
-
-    try {
-      await window.blockCustomer(currentCustomer.id, reason);
-      closeModal();
-      showSuccess(
-        "Cliente bloqueado!",
-        `${currentCustomer.name || currentCustomer.phone} foi bloqueado com sucesso.`,
-        () => {
-          loadCustomers();
-        }
-      );
-    } catch (err) {
-      console.error(err);
-      showError("Erro ao bloquear", "Não foi possível bloquear o cliente.");
-    } finally {
-      confirmBtn.disabled = false;
-    }
-  });
 
   async function deleteCustomerHandler(customer) {
     showDangerConfirm(
@@ -124,14 +80,16 @@ document.addEventListener("DOMContentLoaded", () => {
           const btnUnblock = document.createElement("button");
           btnUnblock.textContent = "Desbloquear";
           btnUnblock.className = "btn-action btn-unblock";
-          btnUnblock.addEventListener("click", async () => {
-            window.showConfirm(
+          btnUnblock.addEventListener("click", () => {
+            showConfirm(
               "Desbloquear cliente",
               `Deseja desbloquear ${c.name || c.phone}?`,
               async () => {
                 try {
                   await window.unblockCustomer(c.id);
-                  showSuccess("Cliente desbloqueado!", "O cliente foi desbloqueado com sucesso.", () => { loadCustomers(); });
+                  showSuccess("Cliente desbloqueado!", "O cliente foi desbloqueado com sucesso.", () => { 
+                    loadCustomers(); 
+                  });
                 } catch (err) {
                   console.error(err);
                   showError("Erro ao desbloquear", "Não foi possível desbloquear o cliente.");
@@ -144,7 +102,27 @@ document.addEventListener("DOMContentLoaded", () => {
           const btnBlock = document.createElement("button");
           btnBlock.textContent = "Bloquear";
           btnBlock.className = "btn-action btn-block";
-          btnBlock.addEventListener("click", () => openModal(c));
+          btnBlock.addEventListener("click", () => {
+            const reason = window.prompt("Motivo do bloqueio:", "Bloqueado via painel");
+            if (reason === null) return;
+
+            showDangerConfirm(
+              "Bloquear cliente",
+              `Tem certeza que deseja bloquear <strong>${c.name || c.phone}</strong>?<br><br><strong>Motivo:</strong> ${reason}`,
+              "Bloquear",
+              async () => {
+                try {
+                  await window.blockCustomer(c.id, reason);
+                  showSuccess("Cliente bloqueado!", "O cliente foi bloqueado com sucesso.", () => {
+                    loadCustomers();
+                  });
+                } catch (err) {
+                  console.error(err);
+                  showError("Erro ao bloquear", "Não foi possível bloquear o cliente.");
+                }
+              }
+            );
+          });
           tdActions.appendChild(btnBlock);
         }
 

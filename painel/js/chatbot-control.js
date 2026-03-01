@@ -16,7 +16,7 @@ if (typeof showSuccess === 'undefined') {
 
 async function startBot() {
     try {
-        const response = await fetch('/whatsapp/start', { method: 'POST' });
+        const response = await fetch('/api/whatsapp/start', { method: 'POST' });
         const data = await response.json();
 
         if (data.success) {
@@ -35,7 +35,7 @@ async function stopBot() {
         'Deseja realmente parar o bot?',
         async () => {
             try {
-                const response = await fetch('/whatsapp/stop', { method: 'POST' });
+                const response = await fetch('/api/whatsapp/stop', { method: 'POST' });
                 const data = await response.json();
 
                 if (data.success) {
@@ -56,7 +56,7 @@ async function restartBot() {
         'Deseja reiniciar o bot? Isso pode levar alguns segundos.',
         async () => {
             try {
-                const response = await fetch('/whatsapp/restart', { method: 'POST' });
+                const response = await fetch('/api/whatsapp/restart', { method: 'POST' });
                 const data = await response.json();
 
                 if (data.success) {
@@ -88,7 +88,7 @@ async function disconnectBot() {
             }
 
             try {
-                const response = await fetch('/whatsapp/disconnect', { method: 'POST' });
+                const response = await fetch('/api/whatsapp/disconnect', { method: 'POST' });
                 const data = await response.json();
 
                 if (response.ok && data.success) {
@@ -120,7 +120,7 @@ async function disconnectBot() {
 
 async function refreshQRCode() {
     try {
-        await fetch('/whatsapp/clear-qr', { method: 'POST' });
+        await fetch('/api/whatsapp/clear-qr', { method: 'POST' });
         showSuccess('QR Code Atualizado', 'O QR Code será atualizado em breve...', () => {
             setTimeout(checkBotStatus, 2000);
         });
@@ -137,7 +137,7 @@ window.addEventListener('beforeunload', () => {
 
 async function checkBotStatus() {
     try {
-        const response = await fetch('/whatsapp/status');
+        const response = await fetch('/api/whatsapp/status');
         const data = await response.json();
         console.log('📊 Status:', data);
         updateStatusUI(data);
@@ -236,7 +236,7 @@ function updateStatusUI(data) {
 
 async function startBot() {
     try {
-        const response = await fetch('/whatsapp/start', { method: 'POST' });
+        const response = await fetch('/api/whatsapp/start', { method: 'POST' });
         const data = await response.json();
         if (data.success) {
             alert('✅ ' + data.message);
@@ -252,7 +252,7 @@ async function startBot() {
 async function stopBot() {
     if (!confirm('Deseja parar o bot?')) return;
     try {
-        const response = await fetch('/whatsapp/stop', { method: 'POST' });
+        const response = await fetch('/api/whatsapp/stop', { method: 'POST' });
         const data = await response.json();
         if (data.success) {
             alert('✅ ' + data.message);
@@ -268,7 +268,7 @@ async function stopBot() {
 async function restartBot() {
     if (!confirm('Deseja reiniciar o bot?')) return;
     try {
-        const response = await fetch('/whatsapp/restart', { method: 'POST' });
+        const response = await fetch('/api/whatsapp/restart', { method: 'POST' });
         const data = await response.json();
         if (data.success) {
             alert('✅ ' + data.message);
@@ -290,7 +290,7 @@ async function disconnectBot() {
     }
 
     try {
-        const response = await fetch('/whatsapp/disconnect', { method: 'POST' });
+        const response = await fetch('/api/whatsapp/disconnect', { method: 'POST' });
         const data = await response.json();
         if (response.ok && data.success) {
             let msg = '✅ ' + data.message + '\n\n';
@@ -315,7 +315,7 @@ async function disconnectBot() {
 
 async function refreshQRCode() {
     try {
-        await fetch('/whatsapp/clear-qr', { method: 'POST' });
+        await fetch('/api/whatsapp/clear-qr', { method: 'POST' });
         alert('✅ QR Code será atualizado...');
         setTimeout(checkBotStatus, 2000);
     } catch (error) {

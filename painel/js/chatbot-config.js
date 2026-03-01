@@ -6,7 +6,7 @@ window.setFlowMode = async function (mode) {
     console.log('🔄 Alterando modo para:', mode);
 
     try {
-        const response = await fetch(`/chatbot/flow-mode?mode=${mode}`, {
+        const response = await fetch(`/api/chatbot/flow-mode?mode=${mode}`, {
             method: 'PUT'
         });
 
@@ -65,7 +65,7 @@ async function loadCurrentMode() {
     console.log('📥 Carregando modo do banco...');
 
     try {
-        const response = await fetch('/chatbot/settings');
+        const response = await fetch('/api/chatbot/settings');
 
         if (!response.ok) {
             throw new Error('Erro ao carregar settings');
@@ -202,7 +202,7 @@ function markAsSaved() {
 // Carregar mensagens do backend
 async function loadMessages() {
     try {
-        const response = await fetch("/chatbot-messages/");
+        const response = await fetch("/api/chatbot-messages/");
         messages = await response.json();
 
         if (messages.length === 0) {
@@ -516,7 +516,7 @@ async function handleFileUpload(index, file) {
         const formData = new FormData();
         formData.append("file", file);
 
-        const response = await fetch("/chatbot-messages/upload-media", {
+        const response = await fetch("/api/chatbot-messages/upload-media", {
             method: "POST",
             body: formData
         });
@@ -596,13 +596,13 @@ async function saveAll() {
 
         for (const msg of messages) {
             if (msg.id) {
-                await fetch(`/chatbot-messages/${msg.id}`, {
+                await fetch(`/api/chatbot-messages/${msg.id}`, {
                     method: "PUT",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(msg)
                 });
             } else {
-                const response = await fetch("/chatbot-messages/", {
+                const response = await fetch("/api/chatbot-messages/", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(msg)

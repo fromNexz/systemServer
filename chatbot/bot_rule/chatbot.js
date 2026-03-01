@@ -32,7 +32,7 @@ console.log('  Catálogo em:', CATALOGO_PATH);
 // ==================== BANCO DE DADOS ====================
 
 const pool = new Pool({
-    host: '204.157.124.199',
+    host: 'localhost',
     port: 5432,
     user: 'postgres',
     password: '003289',
@@ -50,12 +50,10 @@ pool.query('SELECT NOW()', (err, res) => {
 // ==================== CLIENT CONFIG ====================
 
 const client = new Client({
-    authStrategy: new LocalAuth({
-        clientId: 'primalzoni-bot-rule',
-        dataPath: path.join(DATA_DIR, '.wwebjs_auth_rule')
-    }),
+    authStrategy: new LocalAuth({ dataPath: './.wwebjs_cache' }),
     puppeteer: {
         headless: true,
+        executablePath: '/usr/bin/chromium-browser',
         args: [
             '--no-sandbox',
             '--disable-setuid-sandbox',
@@ -63,9 +61,12 @@ const client = new Client({
             '--disable-accelerated-2d-canvas',
             '--no-first-run',
             '--no-zygote',
+            '--single-process',
             '--disable-gpu'
         ]
-    }
+    },
+     qrTimeoutMs: 60000,
+     authTimeoutMs: 60000,	
 });
 
 // ==================== SERVIÇOS ====================
@@ -226,6 +227,27 @@ async function checkCustomerBlocked(phone) {
 }
 
 // ==================== EVENTOS DE CONEXÃO ====================
+
+client.on('loading_screen', (percent, message) => {
+    console.log(`⏳ Carregando: ${percent}% - ${message}`);
+});
+
+client.on('change_state', state => {
+    console.log(`🔄 Estado mudou para: ${state}`);
+});
+
+client.on('authenticated', () => {
+    console.log('✅ AUTENTICADO COM SUCESSO');
+});
+
+client.on('auth_failure', async (msg) => {
+    console.error('❌ FALHA NA AUTENTICAÇÃO:', msg);
+    await saveStatus('disconnected');
+});
+
+client.on('remote_session_saved', () => {
+    console.log('💾 Sessão remota salva');
+});
 
 client.on('qr', async (qrString) => {
     const now = Date.now();
