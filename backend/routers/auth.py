@@ -62,6 +62,7 @@ def login(credentials: LoginRequest, response: Response):
                 key="session_token",
                 value=session_token,
                 httponly=True,
+		secure=True,
                 max_age=86400,  
                 samesite="lax"
             )

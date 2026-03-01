@@ -1544,3 +1544,13 @@ body {
     box-shadow: 0 3px 8px rgba(239, 68, 68, 0.3);
 }
 /* ==================== FIM BOTÕES DE AÇÃO ==================== */
+
+/* Card de Ação Rápida */
+.stat-card.stat-quick-action:hover {
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+}
+
+.stat-card.stat-quick-action:active {
+    transform: translateY(-2px) scale(1.01);
+}
