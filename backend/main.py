@@ -5,6 +5,7 @@ from fastapi.responses import RedirectResponse
 from routers import appointments, customers, settings, chatbot, dashboard, chatbot_messages, whatsapp, auth
 from middleware_auth import check_auth_middleware
 
+
 app = FastAPI(title="PriSystem API")
 
 # Middleware de autenticação (antes de tudo)
@@ -24,7 +25,7 @@ app.include_router(appointments.router, prefix="/api")
 app.include_router(customers.router, prefix="/api")
 app.include_router(settings.router, prefix="/api")
 app.include_router(chatbot.router, prefix="/api")
-app.include_router(dashboard.router, prefix="/api")  # Já deve ter
+app.include_router(dashboard.router, prefix="/api")
 app.include_router(chatbot_messages.router, prefix="/api")
 app.include_router(whatsapp.router, prefix="/api")
 app.include_router(auth.router)
