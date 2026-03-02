@@ -2,16 +2,16 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import RedirectResponse
-from routers import appointments, customers, settings, chatbot, dashboard, chatbot_messages, whatsapp, auth
+from routers import appointments, customers, settings, chatbot, dashboard, chatbot_messages, whatsapp, auth, dev_routes
 from middleware_auth import check_auth_middleware
 
 
 app = FastAPI(title="PriSystem API")
 
-# Middleware de autenticação (antes de tudo)
+
 app.middleware("http")(check_auth_middleware)
 
-# CORS
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -20,7 +20,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Routers da API
+
 app.include_router(appointments.router, prefix="/api")
 app.include_router(customers.router, prefix="/api")
 app.include_router(settings.router, prefix="/api")
@@ -29,6 +29,7 @@ app.include_router(dashboard.router, prefix="/api")
 app.include_router(chatbot_messages.router, prefix="/api")
 app.include_router(whatsapp.router, prefix="/api")
 app.include_router(auth.router)
+app.include_router(dev_routes.router)
 
 @app.get("/api")
 def root():

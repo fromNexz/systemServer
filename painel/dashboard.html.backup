@@ -4,7 +4,7 @@
 <head>
     <base href="/">
     <meta charset="UTF-8" />
-    <title>PriSystem - Dashboard</title>
+    <title>AgendaFlow - Dashboard</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="stylesheet" href="/css/style.css" />
 </head>
@@ -33,7 +33,7 @@
 <body>
     <div class="app-shell">
         <header class="app-header">
-            <div class="app-header-title">PriSystem</div>
+            <div class="app-header-title">AgendaFlow</div>
             <div class="app-header-status">
                 <span id="header-date"></span>
             </div>

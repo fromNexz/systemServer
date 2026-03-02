@@ -1,4 +1,6 @@
-psutil>=5.9.0
+psutil>=5.9.8
 fastapi
 psycopg2-binary
 bcrypt
+httpx==0.26.0
+websockets==12.0

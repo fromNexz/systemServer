@@ -7,7 +7,6 @@ from db import get_connection
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
-# Armazenamento simples de sessões (em produção, use Redis)
 sessions = {}
 
 class LoginRequest(BaseModel):

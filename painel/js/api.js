@@ -38,7 +38,7 @@ async function apiPatch(path, body) {
   return res.json();
 }
 
-// já existentes
+
 window.getChatbotSettings = function () {
   return apiGet("/settings/chatbot");
 };
