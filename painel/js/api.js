@@ -3,7 +3,8 @@ const API_BASE_URL = "/api";
 async function apiGet(path) {
   const res = await fetch(`${API_BASE_URL}${path}`, {
     method: "GET",
-    headers: { "Content-Type": "application/json" }
+    headers: { "Content-Type": "application/json" },
+    credentials: "include"
   });
   if (!res.ok) {
     const text = await res.text().catch(() => "");
@@ -16,7 +17,8 @@ async function apiPut(path, body) {
   const res = await fetch(`${API_BASE_URL}${path}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body)
+    body: JSON.stringify(body),
+    credentials: "include"
   });
   if (!res.ok) {
     const text = await res.text().catch(() => "");
@@ -29,7 +31,8 @@ async function apiPatch(path, body) {
   const res = await fetch(`${API_BASE_URL}${path}`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body)
+    body: JSON.stringify(body),
+    credentials: "include"
   });
   if (!res.ok) {
     const text = await res.text().catch(() => "");
@@ -79,7 +82,8 @@ window.unblockCustomer = function (customerId) {
 
 window.deleteCustomer = async function(customerId) {
   const response = await fetch(`/api/customers/${customerId}`, {
-    method: 'DELETE'
+    method: 'DELETE',
+    credentials: "include"
   });
   if (!response.ok) {
     const error = await response.json();
