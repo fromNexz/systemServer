@@ -90,8 +90,44 @@
 
                 <hr style="border: none; border-top: 2px solid #e0e0e0; margin: 2rem 0;">
 
-                <!-- SEÇÃO DE MENSAGENS PERSONALIZADAS (oculta por padrão) -->
-                <div id="custom-messages-section" style="display: none;">
+                <!-- TABS PARA MODO PADRÃO E PERSONALIZADO -->
+                <div class="tabs-container" style="margin-bottom: 2rem;">
+                    <div class="tabs-header" style="display: flex; gap: 0.5rem; border-bottom: 2px solid #e0e0e0;">
+                        <button id="tab-default-mode" class="tab-button active" onclick="switchTab('default')">
+                            🔵 Editar Modo Padrão
+                        </button>
+                        <button id="tab-custom-mode" class="tab-button" onclick="switchTab('custom')">
+                            🟣 Mensagens Personalizadas
+                        </button>
+                    </div>
+                </div>
+
+                <!-- SEÇÃO DE EDIÇÃO DO MODO PADRÃO -->
+                <div id="default-mode-section" class="tab-content active">
+                    <h2 style="margin-bottom: 1rem;">Editar Mensagens do Modo Padrão</h2>
+                    <p style="color: #666; margin-bottom: 1.5rem;">
+                        Personalize as mensagens profissionais que o chatbot utiliza no fluxo padrão.
+                        Use as variáveis <code>{nome}</code>, <code>{periodo}</code>, <code>{servico}</code>,
+                        <code>{servicos_lista}</code> onde necessário.
+                    </p>
+
+                    <div id="default-messages-list" class="default-messages-list">
+                        <!-- Mensagens padrão serão carregadas aqui -->
+                    </div>
+
+                    <button class="btn-save-all" onclick="saveDefaultMessages()" style="margin-top: 1.5rem;">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                            <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                            <polyline points="7 3 7 8 15 8"></polyline>
+                        </svg>
+                        Salvar Mensagens do Modo Padrão
+                    </button>
+                </div>
+
+                <!-- SEÇÃO DE MENSAGENS PERSONALIZADAS (já existente) -->
+                <div id="custom-messages-section" class="tab-content" style="display: none;">
                     <h2 style="margin-bottom: 1rem;">Mensagens Personalizadas</h2>
                     <p style="color: #666; margin-bottom: 1.5rem;">
                         Crie e organize suas mensagens customizadas. Arraste para reordenar.

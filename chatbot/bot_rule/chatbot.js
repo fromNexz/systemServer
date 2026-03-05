@@ -65,8 +65,8 @@ const client = new Client({
             '--disable-gpu'
         ]
     },
-     qrTimeoutMs: 60000,
-     authTimeoutMs: 60000,	
+    qrTimeoutMs: 60000,
+    authTimeoutMs: 60000,
 });
 
 // ==================== SERVIÇOS ====================
@@ -107,7 +107,8 @@ let CHATBOT_SETTINGS = null;
 let conversasAtivas = {};
 let conversasEncerradas = new Set();
 let PALAVRA_CHAVE_REATIVAR = 'atendimento';
-let FLOW_MODE = 'default'; // 'default' ou 'custom'
+let FLOW_MODE = 'default';
+let MENSAGENS_PADRAO = {};
 
 const delay = ms => new Promise(res => setTimeout(res, ms));
 let lastQrGeneration = 0;
@@ -170,6 +171,55 @@ async function loadProgrammedMessages() {
         console.log(`📋 ${MENSAGENS_PROGRAMADAS.length} mensagens personalizadas carregadas`);
     } catch (error) {
         console.error('❌ Erro ao carregar mensagens:', error);
+    }
+}
+
+async function loadDefaultMessages() {
+    try {
+        const result = await pool.query(`
+            SELECT message_key, message_text
+            FROM chatbot_default_messages
+            WHERE is_active = true
+            ORDER BY order_position ASC
+        `);
+
+        MENSAGENS_PADRAO = {};
+        result.rows.forEach(row => {
+            MENSAGENS_PADRAO[row.message_key] = row.message_text;
+        });
+
+        console.log(`📋 ${result.rows.length} mensagens padrão carregadas do banco`);
+    } catch (error) {
+        console.error('❌ Erro ao carregar mensagens padrão:', error);
+        // Fallback para mensagens hardcoded
+        MENSAGENS_PADRAO = {
+            welcome: `Olá, seja muito bem-vinda! 🤍\n\n` +
+                `Aqui é a assistente virtual da *Pri Malzoni Estética*.\n` +
+                `Vou te orientar no agendamento de forma rápida e organizada ✨\n\n` +
+                `Para começarmos, poderia me informar, por favor,\n` +
+                `seu *nome e sobrenome*? 🤍`,
+            ask_period: `Obrigada, {nome}! ✨\n\n` +
+                `Em qual período você prefere atendimento?\n\n` +
+                `⏰ *Manhã*: das 8h às 12h\n` +
+                `⏰ *Tarde*: das 14h às 18h\n\n` +
+                `_Por favor, responda com *manhã* ou *tarde*_`,
+            ask_service: `Perfeito! 🤍\nAgora me diga, por gentileza,\nqual procedimento você deseja realizar:\n\n{servicos_lista}\n\nConfira o catálogo do whats e conheça os serviços também! 🥰`,
+            closing: `Ótimo ✨\nAgora vou te mostrar as formas disponíveis para seguir com o agendamento 👇\n\n` +
+                `👉 Se preferir realizar o agendamento de forma independente e definitiva, (em média 3 minutos)\n` +
+                `acesse o link abaixo:\n\n` +
+                `https://sites.appbeleza.com.br/primalzonimicropigme\n\n` +
+                `👉 Caso queira falar diretamente com a Pri,\n` +
+                `pedimos que aguarde ela finalizar os atendimentos do dia 🤍\n\n` +
+                `Assim que possível, ela retorna com toda atenção que você merece por ordem de sequência se solicitação.\n\n` +
+                `━━━━━━━━━━━━━━━\n` +
+                `📋 *Resumo da sua solicitação:*\n` +
+                `👤 Nome: {nome}\n` +
+                `⏰ Período: {periodo}\n` +
+                `💆 Serviço: {servico}\n` +
+                `━━━━━━━━━━━━━━━\n\n` +
+                `✅ Seu atendimento foi registrado!\n\n` +
+                `_Se precisar de um novo atendimento, digite *atendimento* 🤍_`
+        };
     }
 }
 
@@ -285,6 +335,7 @@ client.on('ready', async () => {
 
     await loadChatbotSettings();
     await loadProgrammedMessages();
+    await loadDefaultMessages();
 
     try {
         if (fs.existsSync(QR_PATH)) {
@@ -364,11 +415,12 @@ async function processarRespostaPadrao(msg, mensagem, conversa) {
         console.log(`📱 Cliente salvo: ${phone} | Nome: ${mensagem} | ID: ${customerId}`);
 
         await delay(500);
-        const mensagem2 = `Obrigada, ${mensagem}! ✨\n\n` +
-            `Em qual período você prefere atendimento?\n\n` +
-            `⏰ *Manhã*: das 8h às 12h\n` +
-            `⏰ *Tarde*: das 14h às 18h\n\n` +
-            `_Por favor, responda com *manhã* ou *tarde*_`;
+
+        // Usar mensagem do banco e substituir variável
+        let mensagem2 = MENSAGENS_PADRAO['ask_period'] ||
+            `Obrigada, ${mensagem}! ✨\n\nEm qual período você prefere atendimento?`;
+        mensagem2 = mensagem2.replace('{nome}', mensagem);
+
         await client.sendMessage(msg.from, mensagem2);
         return;
     }
@@ -389,14 +441,18 @@ async function processarRespostaPadrao(msg, mensagem, conversa) {
         conversa.etapa = 3;
 
         await delay(500);
-        let mensagem3 = `Perfeito! 🤍\nAgora me diga, por gentileza,\nqual procedimento você deseja realizar:\n\n`;
 
+        // Construir lista de serviços
+        let servicosLista = '';
         Object.keys(SERVICOS).forEach(id => {
             const servico = SERVICOS[id];
-            mensagem3 += `*${id}* - ${servico.nome} ${servico.preco}\n`;
+            servicosLista += `*${id}* - ${servico.nome} ${servico.preco}\n`;
         });
 
-        mensagem3 += `\nConfira o catálogo do whats e conheça os serviços também! 🥰`;
+        // Usar mensagem do banco e substituir variável
+        let mensagem3 = MENSAGENS_PADRAO['ask_service'] ||
+            `Perfeito! 🤍\nAgora me diga qual procedimento você deseja:\n\n{servicos_lista}`;
+        mensagem3 = mensagem3.replace('{servicos_lista}', servicosLista);
 
         await client.sendMessage(msg.from, mensagem3);
 
@@ -427,11 +483,9 @@ async function processarRespostaPadrao(msg, mensagem, conversa) {
             conversa.dados.servico = `${servico.nome} - ${servico.preco}`;
             conversa.etapa = 4;
 
-
             const phone = msg.from.replace('@c.us', '');
             let customerId = conversa.dados.customerId;
 
-            // Fallback: se por algum motivo não tiver o ID, salva de novo
             if (!customerId) {
                 customerId = await saveCustomer(phone, conversa.dados.nome);
                 conversa.dados.customerId = customerId;
@@ -442,22 +496,16 @@ async function processarRespostaPadrao(msg, mensagem, conversa) {
             }
 
             await delay(500);
-            const mensagem4 = `Ótimo ✨\n` +
-                `Agora vou te mostrar as formas disponíveis para seguir com o agendamento 👇\n\n` +
-                `👉 Se preferir realizar o agendamento de forma independente e definitiva, (em média 3 minutos)\n` +
-                `acesse o link abaixo:\n\n` +
-                `https://sites.appbeleza.com.br/primalzonimicropigme\n\n` +
-                `👉 Caso queira falar diretamente com a Pri,\n` +
-                `pedimos que aguarde ela finalizar os atendimentos do dia 🤍\n\n` +
-                `Assim que possível, ela retorna com toda atenção que você merece por ordem de sequência se solicitação.\n\n` +
-                `━━━━━━━━━━━━━━━\n` +
-                `📋 *Resumo da sua solicitação:*\n` +
-                `👤 Nome: ${conversa.dados.nome}\n` +
-                `⏰ Período: ${conversa.dados.periodo}\n` +
-                `💆 Serviço: ${conversa.dados.servico}\n` +
-                `━━━━━━━━━━━━━━━\n\n` +
-                `✅ Seu atendimento foi registrado!\n\n` +
-                `_Se precisar de um novo atendimento, digite *${PALAVRA_CHAVE_REATIVAR}* 🤍_`;
+
+            // Usar mensagem do banco e substituir variáveis
+            let mensagem4 = MENSAGENS_PADRAO['closing'] ||
+                `✅ Seu atendimento foi registrado!\n\nNome: {nome}\nPeríodo: {periodo}\nServiço: {servico}`;
+
+            mensagem4 = mensagem4
+                .replace('{nome}', conversa.dados.nome)
+                .replace('{periodo}', conversa.dados.periodo)
+                .replace('{servico}', conversa.dados.servico);
+
             await client.sendMessage(msg.from, mensagem4);
             encerrarConversa(msg.from);
         } else {
@@ -596,6 +644,7 @@ client.on('message_create', handleMessage);
     await saveStatus('disconnected');
     await loadChatbotSettings();
     await loadProgrammedMessages();
+    await loadDefaultMessages();
 
     console.log(`💆 ${Object.keys(SERVICOS).length} serviços carregados`);
 

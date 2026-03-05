@@ -4,7 +4,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import RedirectResponse
 from routers import appointments, customers, settings, chatbot, dashboard, chatbot_messages, whatsapp, auth, dev_routes
 from middleware_auth import check_auth_middleware
-
+from routers.default_messages import router as default_messages_router
 
 app = FastAPI(title="PriSystem API")
 
@@ -30,6 +30,7 @@ app.include_router(chatbot_messages.router, prefix="/api")
 app.include_router(whatsapp.router, prefix="/api")
 app.include_router(auth.router)
 app.include_router(dev_routes.router)
+app.include_router(default_messages_router)
 
 @app.get("/api")
 def root():

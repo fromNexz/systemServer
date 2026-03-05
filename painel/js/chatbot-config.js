@@ -662,3 +662,181 @@ setTimeout(() => {
     console.log('⏰ Timeout de segurança: carregando modo...');
     loadCurrentMode();
 }, 500);
+
+// ==================== GERENCIAMENTO DE TABS ====================
+
+function switchTab(tabName) {
+    // Atualizar botões das tabs
+    document.querySelectorAll('.tab-button').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    if (tabName === 'default') {
+        document.getElementById('tab-default-mode').classList.add('active');
+    } else {
+        document.getElementById('tab-custom-mode').classList.add('active');
+    }
+    
+    // Atualizar conteúdo das tabs
+    document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.remove('active');
+        content.style.display = 'none';
+    });
+    
+    if (tabName === 'default') {
+        const defaultSection = document.getElementById('default-mode-section');
+        defaultSection.classList.add('active');
+        defaultSection.style.display = 'block';
+        loadDefaultMessages();
+    } else {
+        const customSection = document.getElementById('custom-messages-section');
+        customSection.classList.add('active');
+        customSection.style.display = 'block';
+        loadMessages();
+    }
+}
+
+// ==================== MENSAGENS DO MODO PADRÃO ====================
+
+let defaultMessagesData = [];
+
+async function loadDefaultMessages() {
+    try {
+        const response = await fetch('/default-messages/');
+        
+        if (!response.ok) {
+            throw new Error('Erro ao carregar mensagens padrão');
+        }
+        
+        defaultMessagesData = await response.json();
+        renderDefaultMessages();
+        
+    } catch (error) {
+        console.error('Erro:', error);
+        showNotification('Erro ao carregar mensagens do modo padrão', 'error');
+    }
+}
+
+function renderDefaultMessages() {
+    const container = document.getElementById('default-messages-list');
+    
+    if (!container) {
+        console.error('Container default-messages-list não encontrado');
+        return;
+    }
+    
+    container.innerHTML = '';
+    
+    defaultMessagesData.forEach((msg, index) => {
+        const card = document.createElement('div');
+        card.className = 'default-message-card';
+        card.dataset.messageId = msg.id;
+        
+        // Definir ícones e títulos personalizados
+        const messageInfo = {
+            'welcome': { icon: '👋', title: 'Mensagem de Boas-vindas' },
+            'ask_period': { icon: '⏰', title: 'Pergunta sobre Período' },
+            'ask_service': { icon: '💆', title: 'Pergunta sobre Serviço' },
+            'closing': { icon: '✅', title: 'Mensagem de Encerramento' }
+        };
+        
+        const info = messageInfo[msg.message_key] || { icon: '📝', title: msg.message_key };
+        
+        card.innerHTML = `
+            <div class="default-message-header">
+                <div class="default-message-title">
+                    ${info.icon} ${info.title}
+                </div>
+                <span style="color: #999; font-size: 0.85rem;">Posição: ${msg.order_position}</span>
+            </div>
+            
+            ${msg.description ? `
+                <div class="default-message-description">
+                    ${msg.description}
+                </div>
+            ` : ''}
+            
+            <textarea 
+                class="default-message-textarea" 
+                data-message-id="${msg.id}"
+                placeholder="Digite a mensagem..."
+            >${msg.message_text}</textarea>
+            
+            <div class="message-variables-hint">
+                <strong>💡 Variáveis disponíveis:</strong> 
+                ${getVariablesForMessage(msg.message_key)}
+            </div>
+        `;
+        
+        container.appendChild(card);
+    });
+}
+
+function getVariablesForMessage(messageKey) {
+    const variables = {
+        'welcome': 'Nenhuma variável necessária',
+        'ask_period': '<code>{nome}</code>',
+        'ask_service': '<code>{servicos_lista}</code>',
+        'closing': '<code>{nome}</code>, <code>{periodo}</code>, <code>{servico}</code>'
+    };
+    
+    return variables[messageKey] || 'Nenhuma variável disponível';
+}
+
+async function saveDefaultMessages() {
+    try {
+        const textareas = document.querySelectorAll('.default-message-textarea');
+        const updates = [];
+        
+        for (const textarea of textareas) {
+            const messageId = parseInt(textarea.dataset.messageId);
+            const messageText = textarea.value.trim();
+            
+            if (!messageText) {
+                showNotification('Todas as mensagens devem ter conteúdo', 'error');
+                return;
+            }
+            
+            const originalMsg = defaultMessagesData.find(m => m.id === messageId);
+            
+            updates.push(
+                fetch(`/default-messages/${messageId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        message_key: originalMsg.message_key,
+                        message_text: messageText,
+                        description: originalMsg.description,
+                        order_position: originalMsg.order_position,
+                        is_active: originalMsg.is_active
+                    })
+                })
+            );
+        }
+        
+        const results = await Promise.all(updates);
+        
+        const allSuccess = results.every(r => r.ok);
+        
+        if (allSuccess) {
+            showNotification('Mensagens do modo padrão salvas com sucesso!', 'success');
+            await loadDefaultMessages();
+        } else {
+            showNotification('Erro ao salvar algumas mensagens', 'error');
+        }
+        
+    } catch (error) {
+        console.error('Erro ao salvar:', error);
+        showNotification('Erro ao salvar mensagens', 'error');
+    }
+}
+
+
+document.addEventListener('DOMContentLoaded', () => {
+    const defaultSection = document.getElementById('default-mode-section');
+    if (defaultSection && defaultSection.classList.contains('active')) {
+        loadDefaultMessages();
+    }
+});
