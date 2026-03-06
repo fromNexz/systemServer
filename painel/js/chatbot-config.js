@@ -699,10 +699,35 @@ function switchTab(tabName) {
 // ==================== MENSAGENS DO MODO PADRÃO ====================
 
 let defaultMessagesData = [];
+let defaultMessagesBasePath = null;
+
+async function resolveDefaultMessagesBasePath() {
+    if (defaultMessagesBasePath) {
+        return defaultMessagesBasePath;
+    }
+
+    const candidates = ['/api/default-messages', '/default-messages'];
+
+    for (const basePath of candidates) {
+        try {
+            const response = await fetch(`${basePath}/`);
+            if (response.ok) {
+                defaultMessagesBasePath = basePath;
+                return defaultMessagesBasePath;
+            }
+        } catch (error) {
+            console.warn('Não foi possível testar endpoint', basePath, error);
+        }
+    }
+
+    defaultMessagesBasePath = '/api/default-messages';
+    return defaultMessagesBasePath;
+}
 
 async function loadDefaultMessages() {
     try {
-        const response = await fetch('/api/default-messages/');
+        const basePath = await resolveDefaultMessagesBasePath();
+        const response = await fetch(`${basePath}/`);
         
         if (!response.ok) {
             throw new Error('Erro ao carregar mensagens padrão');
@@ -713,7 +738,7 @@ async function loadDefaultMessages() {
         
     } catch (error) {
         console.error('Erro:', error);
-        showNotification('Erro ao carregar mensagens do modo padrão', 'error');
+        showError('Erro', 'Erro ao carregar mensagens do modo padrão');
     }
 }
 
@@ -785,6 +810,7 @@ function getVariablesForMessage(messageKey) {
 
 async function saveDefaultMessages() {
     try {
+        await resolveDefaultMessagesBasePath();
         const textareas = document.querySelectorAll('.default-message-textarea');
         const updates = [];
         
@@ -793,14 +819,14 @@ async function saveDefaultMessages() {
             const messageText = textarea.value.trim();
             
             if (!messageText) {
-                showNotification('Todas as mensagens devem ter conteúdo', 'error');
+                showError('Erro', 'Todas as mensagens devem ter conteúdo');
                 return;
             }
             
             const originalMsg = defaultMessagesData.find(m => m.id === messageId);
             
             updates.push(
-                fetch(`/default-messages/${messageId}`, {
+                fetch(`${defaultMessagesBasePath || '/api/default-messages'}/${messageId}`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json'
@@ -821,15 +847,15 @@ async function saveDefaultMessages() {
         const allSuccess = results.every(r => r.ok);
         
         if (allSuccess) {
-            showNotification('Mensagens do modo padrão salvas com sucesso!', 'success');
+            showSuccess('Sucesso', 'Mensagens do modo padrão salvas com sucesso!');
             await loadDefaultMessages();
         } else {
-            showNotification('Erro ao salvar algumas mensagens', 'error');
+            showError('Erro', 'Erro ao salvar algumas mensagens');
         }
         
     } catch (error) {
         console.error('Erro ao salvar:', error);
-        showNotification('Erro ao salvar mensagens', 'error');
+        showError('Erro', 'Erro ao salvar mensagens');
     }
 }
 

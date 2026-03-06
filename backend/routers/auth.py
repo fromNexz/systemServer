@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Response, Cookie, Depends
+from fastapi import APIRouter, HTTPException, Response, Cookie, Request
 from pydantic import BaseModel
 from typing import Optional
 import bcrypt
@@ -29,7 +29,7 @@ def create_session_token() -> str:
     return secrets.token_urlsafe(32)
 
 @router.post("/login")
-def login(credentials: LoginRequest, response: Response):
+def login(credentials: LoginRequest, request: Request, response: Response):
     conn = get_connection()
     try:
         with conn.cursor() as cur:
@@ -57,11 +57,14 @@ def login(credentials: LoginRequest, response: Response):
             }
             
             # Definir cookie
+            forwarded_proto = request.headers.get("x-forwarded-proto", "")
+            is_https = request.url.scheme == "https" or forwarded_proto == "https"
+
             response.set_cookie(
                 key="session_token",
                 value=session_token,
                 httponly=True,
-		secure=True,
+                secure=is_https,
                 max_age=86400,  
                 samesite="lax"
             )
