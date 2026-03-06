@@ -713,7 +713,7 @@ async function loadDefaultMessages() {
         
     } catch (error) {
         console.error('Erro:', error);
-        showNotification('Erro ao carregar mensagens do modo padrão', 'error');
+        showError('Erro', 'Erro ao carregar mensagens do modo padrão');
     }
 }
 
@@ -793,7 +793,7 @@ async function saveDefaultMessages() {
             const messageText = textarea.value.trim();
             
             if (!messageText) {
-                showNotification('Todas as mensagens devem ter conteúdo', 'error');
+                showError('Erro', 'Todas as mensagens devem ter conteúdo');
                 return;
             }
             
@@ -821,15 +821,15 @@ async function saveDefaultMessages() {
         const allSuccess = results.every(r => r.ok);
         
         if (allSuccess) {
-            showNotification('Mensagens do modo padrão salvas com sucesso!', 'success');
+            showSuccess('Sucesso', 'Mensagens do modo padrão salvas com sucesso!');
             await loadDefaultMessages();
         } else {
-            showNotification('Erro ao salvar algumas mensagens', 'error');
+            showError('Erro', 'Erro ao salvar algumas mensagens');
         }
         
     } catch (error) {
         console.error('Erro ao salvar:', error);
-        showNotification('Erro ao salvar mensagens', 'error');
+        showError('Erro', 'Erro ao salvar mensagens');
     }
 }
 

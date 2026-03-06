@@ -40,8 +40,8 @@ def root():
 def redirect_root():
     return RedirectResponse(url="/login.html")
 
-# UM ÚNICO mount para tudo — raiz serve o painel inteiro
-# /css/, /js/, /login.html ficam acessíveis normalmente
-# /pri/dashboard.html também funciona pois aponta pra mesma pasta
+# Serve arquivos estáticos do painel também pela raiz para manter
+# compatibilidade com referências absolutas (/css, /js, /login.html).
 app.mount("/pri", StaticFiles(directory="../painel", html=True), name="pri")
 app.mount("/app", StaticFiles(directory="../painel", html=True), name="painel")
+app.mount("/", StaticFiles(directory="../painel", html=True), name="root_static")
