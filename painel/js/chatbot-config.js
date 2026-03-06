@@ -699,10 +699,35 @@ function switchTab(tabName) {
 // ==================== MENSAGENS DO MODO PADRÃO ====================
 
 let defaultMessagesData = [];
+let defaultMessagesBasePath = null;
+
+async function resolveDefaultMessagesBasePath() {
+    if (defaultMessagesBasePath) {
+        return defaultMessagesBasePath;
+    }
+
+    const candidates = ['/api/default-messages', '/default-messages'];
+
+    for (const basePath of candidates) {
+        try {
+            const response = await fetch(`${basePath}/`);
+            if (response.ok) {
+                defaultMessagesBasePath = basePath;
+                return defaultMessagesBasePath;
+            }
+        } catch (error) {
+            console.warn('Não foi possível testar endpoint', basePath, error);
+        }
+    }
+
+    defaultMessagesBasePath = '/api/default-messages';
+    return defaultMessagesBasePath;
+}
 
 async function loadDefaultMessages() {
     try {
-        const response = await fetch('/api/default-messages/');
+        const basePath = await resolveDefaultMessagesBasePath();
+        const response = await fetch(`${basePath}/`);
         
         if (!response.ok) {
             throw new Error('Erro ao carregar mensagens padrão');
@@ -785,6 +810,7 @@ function getVariablesForMessage(messageKey) {
 
 async function saveDefaultMessages() {
     try {
+        await resolveDefaultMessagesBasePath();
         const textareas = document.querySelectorAll('.default-message-textarea');
         const updates = [];
         
@@ -800,7 +826,7 @@ async function saveDefaultMessages() {
             const originalMsg = defaultMessagesData.find(m => m.id === messageId);
             
             updates.push(
-                fetch(`/default-messages/${messageId}`, {
+                fetch(`${defaultMessagesBasePath || '/api/default-messages'}/${messageId}`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json'

@@ -31,6 +31,7 @@ app.include_router(whatsapp.router, prefix="/api")
 app.include_router(auth.router)
 app.include_router(dev_routes.router)
 app.include_router(default_messages_router, prefix="/api")
+app.include_router(default_messages_router)
 
 @app.get("/api")
 def root():
