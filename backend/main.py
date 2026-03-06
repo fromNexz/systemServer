@@ -41,11 +41,6 @@ def root():
 def redirect_root():
     return RedirectResponse(url="/login.html")
 
-@app.get("/favicon.ico", include_in_schema=False)
-def favicon():
-    return FileResponse("../assets/icons/main.ico")
-
-
 # Serve arquivos estáticos do painel também pela raiz para manter
 # compatibilidade com referências absolutas (/css, /js, /login.html).
 app.mount("/pri", StaticFiles(directory="../painel", html=True), name="pri")
