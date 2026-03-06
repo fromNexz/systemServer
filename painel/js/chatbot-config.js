@@ -706,7 +706,7 @@ async function resolveDefaultMessagesBasePath() {
         return defaultMessagesBasePath;
     }
 
-    const candidates = ['/api/default_messages_router', '/default_messages_router'];
+    const candidates = ['/api/default-messages', '/default-messages'];
 
     for (const basePath of candidates) {
         try {
@@ -720,7 +720,7 @@ async function resolveDefaultMessagesBasePath() {
         }
     }
 
-    defaultMessagesBasePath = '/default_messages_router';
+    defaultMessagesBasePath = '/api/default-messages';
     return defaultMessagesBasePath;
 }
 
