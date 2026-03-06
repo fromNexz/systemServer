@@ -4,6 +4,9 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import RedirectResponse, FileResponse
+from fastapi.openapi.utils import get_openapi
+from fastapi.openapi.docs import get_swagger_ui_html, get_swagger_ui_oauth2_redirect_html
+from fastapi.responses import JSONResponse
 from routers import appointments, customers, settings, chatbot, dashboard, chatbot_messages, whatsapp, auth, dev_routes
 from middleware_auth import check_auth_middleware
 from routers.default_messages import router as default_messages_router, get_default_messages, update_default_message, DefaultMessage
@@ -63,6 +66,21 @@ def legacy_update_default_messages_root(message_id: int, message: DefaultMessage
 @app.get("/")
 def redirect_root():
     return RedirectResponse(url="/login.html")
+
+
+@app.get("/api/openapi.json", include_in_schema=False)
+def openapi_api():
+    return JSONResponse(get_openapi(title=app.title, version="1.0.0", routes=app.routes))
+
+
+@app.get("/api/docs", include_in_schema=False)
+def docs_api():
+    return get_swagger_ui_html(openapi_url="/api/openapi.json", title=f"{app.title} - Swagger UI")
+
+
+@app.get("/api/docs/oauth2-redirect", include_in_schema=False)
+def swagger_redirect_api():
+    return get_swagger_ui_oauth2_redirect_html()
 
 @app.get("/favicon.ico", include_in_schema=False)
 def favicon():
