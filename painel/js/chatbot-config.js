@@ -702,7 +702,7 @@ let defaultMessagesData = [];
 
 async function loadDefaultMessages() {
     try {
-        const response = await fetch('/default-messages/');
+        const response = await fetch('/api/default-messages/');
         
         if (!response.ok) {
             throw new Error('Erro ao carregar mensagens padrão');

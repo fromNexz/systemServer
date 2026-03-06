@@ -30,7 +30,7 @@ app.include_router(chatbot_messages.router, prefix="/api")
 app.include_router(whatsapp.router, prefix="/api")
 app.include_router(auth.router)
 app.include_router(dev_routes.router)
-app.include_router(default_messages_router)
+app.include_router(default_messages_router, prefix="/api")
 
 @app.get("/api")
 def root():
@@ -44,4 +44,4 @@ def redirect_root():
 # /css/, /js/, /login.html ficam acessíveis normalmente
 # /pri/dashboard.html também funciona pois aponta pra mesma pasta
 app.mount("/pri", StaticFiles(directory="../painel", html=True), name="pri")
-app.mount("/", StaticFiles(directory="../painel", html=True), name="painel")
+app.mount("/app", StaticFiles(directory="../painel", html=True), name="painel")
